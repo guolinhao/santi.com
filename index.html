@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#050708" />
+<meta name="description" content="三体·宇宙回声——以原创 SVG 插画呈现的《三体》三部曲互动叙事游戏" />
+<title>三体 · 宇宙回声</title>
+<style>
+:root{
+  --void:#050708;--void2:#090c0e;--panel:rgba(255,255,255,.045);--panel2:rgba(255,255,255,.075);
+  --line:rgba(255,255,255,.11);--line2:rgba(255,255,255,.2);--paper:#eee9df;--muted:#93999a;
+  --red:#e05255;--red2:#ff7a6e;--cyan:#58d7cf;--gold:#d8ad68;--violet:#a698ff;
+  --serif:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",serif;
+  --sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  --ease:cubic-bezier(.22,1,.36,1);--ease2:cubic-bezier(.65,0,.35,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;background:var(--void);color:var(--paper);font-family:var(--sans);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body:before{content:"";position:fixed;inset:0;z-index:99;pointer-events:none;opacity:.038;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");mix-blend-mode:soft-light}
+body.modal-open{overflow:hidden}
+button,input{font:inherit}button{color:inherit}button:focus-visible,a:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+::selection{background:var(--red);color:#fff}.hidden{display:none!important}
+#starfield{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.68}
+.global-defs{position:absolute;width:0;height:0;overflow:hidden}
+
+/* ---------- 开场 ---------- */
+.intro{position:fixed;inset:0;z-index:20;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 44%,rgba(224,82,85,.09),transparent 25rem),linear-gradient(180deg,#050708,#080a0c)}
+.intro:before{content:"";position:absolute;width:min(76vw,760px);aspect-ratio:1;border:1px solid rgba(255,255,255,.07);border-radius:50%;box-shadow:0 0 0 90px rgba(255,255,255,.012),0 0 0 180px rgba(255,255,255,.008);animation:introOrbit 22s linear infinite}
+.intro:after{content:"";position:absolute;width:1px;height:1px;background:#fff;box-shadow:0 0 80px 28px rgba(255,255,255,.8),220px -120px 0 2px rgba(255,255,255,.7),-270px 90px 0 1px rgba(88,215,207,.8),360px 160px 0 1px rgba(224,82,85,.7);animation:introFlash 6s ease-in-out infinite}
+@keyframes introOrbit{to{transform:rotate(360deg)}}@keyframes introFlash{50%{opacity:.3}}
+.intro-inner{position:relative;z-index:2;width:min(920px,calc(100vw - 36px));text-align:center;padding:70px 0}
+.intro-kicker{font-size:10px;letter-spacing:.3em;color:#858b8c;text-transform:uppercase;margin-bottom:30px}
+.intro-title{position:relative;display:flex;justify-content:center;gap:clamp(18px,6vw,72px);font-family:var(--serif);font-size:clamp(90px,18vw,220px);line-height:.78;letter-spacing:-.12em;margin:0;text-shadow:0 20px 80px rgba(0,0,0,.7)}
+.intro-title span{display:block;animation:titleIn 1.25s var(--ease) both}.intro-title span:last-child{animation-delay:.14s;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.72)}
+@keyframes titleIn{from{opacity:0;transform:translateY(60px) rotate(4deg);filter:blur(10px)}to{opacity:1;transform:none;filter:none}}
+.intro-en{margin:34px 0 0;font-family:var(--serif);font-style:italic;color:#777e7f;font-size:clamp(13px,2vw,19px);letter-spacing:.2em}
+.intro-quote{margin:44px auto 0;max-width:650px;color:#b8b9b3;font-family:var(--serif);font-size:clamp(15px,2vw,20px);line-height:2}
+.intro-actions{display:flex;justify-content:center;gap:14px;margin-top:42px;flex-wrap:wrap}
+.btn{position:relative;border:1px solid var(--line2);background:rgba(255,255,255,.04);border-radius:999px;padding:13px 22px;cursor:pointer;font-size:12px;letter-spacing:.08em;transition:all .35s var(--ease);overflow:hidden}
+.btn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.09)}
+.btn.primary{background:var(--paper);color:#101213;border-color:var(--paper);padding:14px 28px;font-weight:700}.btn.primary:hover{background:var(--cyan);border-color:var(--cyan)}
+.intro-note{margin-top:25px;color:#555c5e;font-size:10px;letter-spacing:.08em;line-height:1.8}
+
+/* ---------- 顶部 ---------- */
+.game{position:relative;z-index:1;min-height:100vh}
+.topbar{height:72px;position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,3vw,42px);background:rgba(5,7,8,.78);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:13px;text-decoration:none;color:var(--paper)}
+.brand-mark{position:relative;width:30px;height:30px;border:1px solid rgba(88,215,207,.45);border-radius:50%;display:grid;place-items:center}
+.brand-mark:before,.brand-mark:after{content:"";position:absolute;background:var(--cyan)}.brand-mark:before{width:12px;height:1px;transform:rotate(45deg)}.brand-mark:after{width:1px;height:12px;transform:rotate(45deg)}
+.brand b{font-family:var(--serif);font-weight:500;letter-spacing:.12em;font-size:15px}.brand small{display:block;color:#656c6d;font-size:8px;letter-spacing:.19em;margin-top:2px}
+.top-status{display:flex;align-items:center;gap:18px}.status-chapter{font-size:11px;color:#8d9292;letter-spacing:.08em}.status-chapter b{color:var(--paper);font-weight:500;margin-left:8px}
+.top-actions{display:flex;gap:8px}.icon-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.025);cursor:pointer;display:grid;place-items:center;font-size:15px;transition:.3s var(--ease)}
+.icon-btn:hover{background:rgba(255,255,255,.1);border-color:var(--line2);transform:translateY(-1px)}.icon-btn.active{color:var(--cyan);border-color:rgba(88,215,207,.4)}
+
+/* ---------- 主布局 ---------- */
+.story-layout{min-height:calc(100vh - 72px);display:grid;grid-template-columns:220px minmax(0,1.3fr) minmax(370px,.82fr)}
+.timeline{border-right:1px solid var(--line);padding:28px 18px;background:rgba(0,0,0,.12);position:sticky;top:72px;height:calc(100vh - 72px);overflow:auto}
+.timeline-title{padding:0 10px 18px;color:#63696a;font-size:9px;letter-spacing:.2em;text-transform:uppercase}
+.timeline-item{position:relative;width:100%;display:grid;grid-template-columns:25px 1fr;gap:7px;text-align:left;border:0;background:transparent;padding:11px 9px;border-radius:10px;cursor:pointer;transition:.35s var(--ease)}
+.timeline-item:before{content:"";position:absolute;left:21px;top:31px;bottom:-11px;width:1px;background:var(--line)}.timeline-item:last-child:before{display:none}
+.timeline-item:hover{background:rgba(255,255,255,.045)}.timeline-item.active{background:linear-gradient(90deg,rgba(224,82,85,.13),transparent)}
+.tl-no{width:22px;height:22px;border-radius:50%;border:1px solid #3c4243;display:grid;place-items:center;color:#656b6c;font:9px var(--mono);position:relative;z-index:1;background:var(--void)}
+.timeline-item.active .tl-no{border-color:var(--red);color:#fff;background:#9c3033;box-shadow:0 0 0 5px rgba(224,82,85,.08)}
+.timeline-item.visited .tl-no{color:var(--cyan);border-color:rgba(88,215,207,.42)}
+.tl-name{font-size:12px;color:#a1a5a4;margin-top:1px}.timeline-item.active .tl-name{color:#fff}.tl-era{display:block;color:#575e5f;font-size:9px;margin-top:4px;line-height:1.4}
+.timeline-foot{margin:24px 9px 0;padding-top:18px;border-top:1px solid var(--line);color:#4f5556;font-size:9px;line-height:1.8}
+
+/* ---------- 画面 ---------- */
+.visual{min-width:0;padding:22px;display:flex;flex-direction:column;border-right:1px solid var(--line);background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.025),transparent 55%)}
+.visual-head{height:46px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.visual-kicker{font-size:9px;letter-spacing:.18em;color:#6b7273;text-transform:uppercase}.visual-head h2{font:400 18px var(--serif);margin:5px 0 0;letter-spacing:.08em}
+.visual-counter{font:10px var(--mono);color:#646a6b;padding-top:6px}
+.art-frame{position:relative;flex:1;min-height:480px;overflow:hidden;border:1px solid var(--line);border-radius:18px;background:#030405;box-shadow:0 28px 80px rgba(0,0,0,.35)}
+.art-frame:before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;box-shadow:inset 0 0 70px rgba(0,0,0,.48),inset 0 0 0 1px rgba(255,255,255,.03)}
+.art-frame:after{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;background:repeating-linear-gradient(to bottom,transparent 0 3px,rgba(255,255,255,.015) 4px);opacity:.45}
+.art-frame svg{position:absolute;inset:0;width:100%;height:100%;transition:opacity .55s ease,transform .85s var(--ease),filter .55s ease}
+.art-frame.changing svg{opacity:0;transform:scale(1.035);filter:blur(8px)}
+.art-caption{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;padding:16px 3px 0}
+.caption-title{font:400 13px var(--serif);letter-spacing:.08em}.caption-title>span+span{color:var(--muted);font:10px var(--sans);margin-left:10px}
+.caption-tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.tag{padding:5px 9px;border:1px solid var(--line);border-radius:999px;color:#767c7d;font-size:9px;letter-spacing:.06em;background:rgba(255,255,255,.025)}
+.art-note{margin-top:10px;color:#4f5556;font-size:9px;letter-spacing:.04em;line-height:1.6}
+
+/* ---------- 叙事 ---------- */
+.narrative{min-width:0;padding:27px 28px 24px;display:flex;flex-direction:column;background:rgba(8,10,11,.35)}
+.chapter-meta{display:flex;align-items:center;gap:9px;color:#737a7b;font-size:9px;letter-spacing:.16em;text-transform:uppercase}.chapter-meta i{width:5px;height:5px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red)}
+.chapter-title{margin:12px 0 5px;font:400 clamp(30px,3.2vw,43px)/1.05 var(--serif);letter-spacing:-.035em}.chapter-subtitle{color:#8d9292;font:italic 15px var(--serif);margin-bottom:18px}
+.story-log{flex:1;min-height:240px;max-height:calc(100vh - 405px);overflow:auto;padding-right:9px;scroll-behavior:smooth}
+.story-block{position:relative;padding:0 0 18px 22px;margin-bottom:18px;border-left:1px solid var(--line);animation:storyIn .65s var(--ease) both}
+.story-block:before{content:"";position:absolute;left:-3px;top:7px;width:5px;height:5px;border-radius:50%;background:#697071}
+.story-block.intro:before{background:var(--red);box-shadow:0 0 10px rgba(224,82,85,.65)}
+.story-block.choice:before{background:var(--cyan)}.story-block.result:before{background:var(--gold)}
+.story-block .label{font-size:9px;letter-spacing:.12em;color:#676e6f;text-transform:uppercase;margin-bottom:7px}
+.story-block p{margin:0;color:#c8c8c2;font:14px/1.95 var(--sans);letter-spacing:.015em}.story-block.choice p{color:#e7e3da;font-family:var(--serif);font-size:15px}.story-block.result p{color:#aeb2af}
+.choice-area{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+.choice-label{display:flex;justify-content:space-between;align-items:center;color:#606768;font-size:9px;letter-spacing:.13em;margin-bottom:11px;text-transform:uppercase}.choice-label span:last-child{font-family:var(--mono);letter-spacing:0}
+.choice{position:relative;width:100%;display:grid;grid-template-columns:29px 1fr;gap:11px;text-align:left;border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:12px;padding:13px 14px;margin-top:9px;cursor:pointer;transition:.35s var(--ease);overflow:hidden}
+.choice:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--cyan);transform:scaleY(0);transition:transform .35s var(--ease)}
+.choice:hover{transform:translateX(4px);border-color:rgba(88,215,207,.4);background:rgba(88,215,207,.055)}.choice:hover:before{transform:scaleY(1)}
+.choice.disabled{opacity:.38;pointer-events:none}.choice.selected{border-color:rgba(88,215,207,.55);background:rgba(88,215,207,.07)}
+.choice-key{width:24px;height:24px;border:1px solid var(--line2);border-radius:50%;display:grid;place-items:center;font:9px var(--mono);color:#848a8b}
+.choice:hover .choice-key{color:var(--cyan);border-color:var(--cyan)}
+.choice-title{font-size:13px;color:#e4e1d8;margin-bottom:4px}.choice-desc{font-size:10px;color:#767c7d;line-height:1.6}
+.effects{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}.effect{font:8px var(--mono);padding:3px 6px;border-radius:4px;background:rgba(255,255,255,.045);color:#7b8182}.effect.pos{color:#70d9ce;background:rgba(88,215,207,.08)}.effect.neg{color:#e87e78;background:rgba(224,82,85,.08)}
+.continue-btn{width:100%;margin-top:12px;padding:13px 17px;border-radius:10px;border:1px solid rgba(216,173,104,.45);background:rgba(216,173,104,.09);color:#e2c28c;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.1em;transition:.35s var(--ease)}
+.continue-btn:hover{background:rgba(216,173,104,.16);transform:translateX(3px)}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;padding-top:17px;border-top:1px solid var(--line)}
+.metric-head{display:flex;justify-content:space-between;color:#717778;font-size:9px;letter-spacing:.08em;margin-bottom:6px}.metric-head b{font:9px var(--mono);color:#a1a6a5}.meter{height:2px;background:rgba(255,255,255,.07);overflow:hidden}.meter i{display:block;height:100%;width:0;background:var(--cyan);transition:width .7s var(--ease)}.meter.empathy i{background:var(--red2)}.meter.survival i{background:var(--gold)}
+
+/* ---------- 弹窗 ---------- */
+.modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;background:rgba(2,3,4,.82);backdrop-filter:blur(15px);animation:modalIn .35s ease both}
+.modal-card{width:min(920px,96vw);max-height:88vh;overflow:auto;background:#0b0e10;border:1px solid var(--line2);border-radius:22px;padding:28px;box-shadow:0 35px 100px rgba(0,0,0,.7)}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:30px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.modal-head h3{margin:0;font:400 28px var(--serif)}.modal-head p{margin:8px 0 0;color:#707778;font-size:11px;line-height:1.7}.close-btn{border:0;background:transparent;color:#8b9191;cursor:pointer;font-size:24px;line-height:1}
+.archive-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:20px}.archive-item{padding:16px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.02);cursor:pointer;transition:.3s var(--ease);text-align:left}.archive-item:hover{border-color:rgba(88,215,207,.4);background:rgba(88,215,207,.045);transform:translateY(-2px)}
+.archive-item.current{border-color:rgba(224,82,85,.45)}.archive-no{font:9px var(--mono);color:var(--red);letter-spacing:.1em}.archive-item h4{margin:7px 0 5px;font:400 19px var(--serif)}.archive-item p{margin:0;color:#777e7f;font-size:10px;line-height:1.65}.archive-item small{display:block;color:#555c5d;font-size:9px;margin-top:9px}
+.ending-card{text-align:center;width:min(780px,94vw)}.ending-orbit{width:90px;height:90px;border:1px solid rgba(88,215,207,.4);border-radius:50%;margin:0 auto 26px;position:relative;display:grid;place-items:center}.ending-orbit:before{content:"";position:absolute;inset:13px;border:1px solid rgba(224,82,85,.35);border-radius:50%;animation:introOrbit 9s linear infinite}.ending-orbit span{font:18px var(--serif);color:var(--cyan)}
+.ending-card h3{font:400 clamp(30px,5vw,52px)/1.1 var(--serif);margin:0}.ending-card>p{color:#a4aaa9;font:15px/2 var(--serif);max-width:620px;margin:22px auto 0}.ending-stats{display:flex;justify-content:center;gap:10px;margin:28px 0;flex-wrap:wrap}.ending-stat{padding:8px 13px;border:1px solid var(--line);border-radius:999px;font:10px var(--mono);color:#8d9393}.ending-actions{display:flex;justify-content:center;gap:12px;margin-top:30px;flex-wrap:wrap}
+.legal-note{max-width:640px;margin:25px auto 0;padding-top:18px;border-top:1px solid var(--line);color:#555c5d;font-size:9px;line-height:1.8}
+
+/* ---------- SVG 动画与场景元件 ---------- */
+.scene-svg{overflow:visible}
+.spin-slow{transform-box:fill-box;transform-origin:center;animation:svgSpin 18s linear infinite}
+.spin-fast{transform-box:fill-box;transform-origin:center;animation:svgSpin 7s linear infinite reverse}
+.orbit-a{transform-box:fill-box;transform-origin:center;animation:orbitA 12s linear infinite}
+.orbit-b{transform-box:fill-box;transform-origin:center;animation:orbitB 17s linear infinite}
+.float{animation:svgFloat 5s ease-in-out infinite}.float.d1{animation-delay:-1.7s}.float.d2{animation-delay:-3.2s}
+.pulse{transform-box:fill-box;transform-origin:center;animation:svgPulse 3.4s ease-in-out infinite}
+.scan{animation:scanMove 4s linear infinite}.blink{animation:blink 1.4s steps(2,end) infinite}
+.wave{animation:waveMove 4s ease-in-out infinite}.wave.d1{animation-delay:-1s}.wave.d2{animation-delay:-2s}
+.drift{animation:drift 8s ease-in-out infinite}.slice-line{stroke-dasharray:8 12;animation:dash 1.2s linear infinite}
+@keyframes svgSpin{to{transform:rotate(360deg)}}@keyframes orbitA{to{transform:rotate(360deg)}}@keyframes orbitB{to{transform:rotate(-360deg)}}
+@keyframes svgFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}@keyframes svgPulse{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.06);opacity:1}}
+@keyframes scanMove{from{transform:translateY(-190px)}to{transform:translateY(190px)}}@keyframes blink{50%{opacity:.25}}
+@keyframes waveMove{0%,100%{transform:scale(.96);opacity:.25}50%{transform:scale(1.04);opacity:.65}}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(9px,-7px)}}@keyframes dash{to{stroke-dashoffset:-40}}
+
+/* ---------- 响应式 ---------- */
+@media(max-width:1240px){
+  .story-layout{grid-template-columns:190px minmax(0,1.1fr) minmax(340px,.9fr)}
+  .timeline{padding-inline:12px}.visual{padding:18px}.narrative{padding-inline:22px}
+}
+@media(max-width:980px){
+  .topbar{height:64px}.story-layout{display:block}.timeline{position:relative;top:auto;height:auto;border-right:0;border-bottom:1px solid var(--line);display:flex;gap:6px;overflow:auto;padding:10px 14px}
+  .timeline-title,.timeline-foot{display:none}.timeline-item{flex:0 0 150px;grid-template-columns:24px 1fr}.timeline-item:before{display:none}
+  .visual{border-right:0;border-bottom:1px solid var(--line)}.art-frame{min-height:500px}.story-log{max-height:none;min-height:180px}
+  .narrative{min-height:560px}.top-status .status-chapter{display:none}
+}
+@media(max-width:640px){
+  .intro-title{font-size:108px;gap:22px}.intro-quote{font-size:14px}.intro-actions .btn{width:100%;max-width:280px}
+  .brand small{display:none}.top-actions .icon-btn{width:35px;height:35px}.topbar{padding-inline:12px}
+  .timeline-item{flex-basis:132px}.tl-era{display:none}.visual{padding:12px}.visual-head{height:42px}.art-frame{min-height:330px;border-radius:13px}
+  .art-caption{grid-template-columns:1fr}.caption-tags{justify-content:flex-start}.art-note{display:none}
+  .narrative{padding:22px 16px}.chapter-title{font-size:32px}.story-block p{font-size:13px}.metrics{gap:8px}
+  .archive-list{grid-template-columns:1fr}.modal-card{padding:20px;border-radius:16px}.modal-head h3{font-size:23px}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<svg class="global-defs" aria-hidden="true"><defs>
+  <linearGradient id="gNight" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#030506"/><stop offset=".58" stop-color="#0a1013"/><stop offset="1" stop-color="#151a1b"/></linearGradient>
+  <linearGradient id="gDeep" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b1114"/><stop offset=".55" stop-color="#050708"/><stop offset="1" stop-color="#15100f"/></linearGradient>
+  <linearGradient id="gOcean" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#14262d"/><stop offset="1" stop-color="#05090c"/></linearGradient>
+  <linearGradient id="gSteel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4f4ef"/><stop offset=".23" stop-color="#8e9798"/><stop offset=".48" stop-color="#e9efec"/><stop offset=".75" stop-color="#535b5d"/><stop offset="1" stop-color="#d5d9d6"/></linearGradient>
+  <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f5dca2"/><stop offset=".4" stop-color="#b98545"/><stop offset="1" stop-color="#5d3a20"/></linearGradient>
+  <linearGradient id="gField" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c8a55b"/><stop offset=".42" stop-color="#7b6735"/><stop offset="1" stop-color="#263125"/></linearGradient>
+  <radialGradient id="gRed"><stop stop-color="#fff1dc" stop-opacity=".95"/><stop offset=".16" stop-color="#ff7b67" stop-opacity=".8"/><stop offset=".48" stop-color="#c63135" stop-opacity=".28"/><stop offset="1" stop-color="#7b1118" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gCyan"><stop stop-color="#efffff" stop-opacity=".95"/><stop offset=".14" stop-color="#72eee4" stop-opacity=".75"/><stop offset=".48" stop-color="#177a78" stop-opacity=".25"/><stop offset="1" stop-color="#082a2b" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gGoldGlow"><stop stop-color="#fff6d8"/><stop offset=".12" stop-color="#edc67f" stop-opacity=".9"/><stop offset=".48" stop-color="#8d5d2e" stop-opacity=".26"/><stop offset="1" stop-color="#21130b" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gPlanet"><stop offset="0" stop-color="#182b31"/><stop offset=".68" stop-color="#0a1215"/><stop offset="1" stop-color="#050708"/></radialGradient>
+  <filter id="fGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="fSoft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="24"/></filter>
+  <filter id="fText" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#fff" flood-opacity=".4"/></filter>
+</defs></svg>
+<canvas id="starfield" aria-hidden="true"></canvas>
+
+<section class="intro" id="intro">
+  <div class="intro-inner">
+    <div class="intro-kicker">An Interactive Chronicle · 非官方互动叙事</div>
+    <h1 class="intro-title" aria-label="三体"><span>三</span><span>体</span></h1>
+    <p class="intro-en">THE THREE-BODY PROBLEM / ECHOES OF THE UNIVERSE</p>
+    <p class="intro-quote">“弱小和无知不是生存的障碍，傲慢才是。”</p>
+    <div class="intro-actions">
+      <button class="btn primary" id="startBtn">进入宇宙</button>
+      <button class="btn" id="newBtn">从红岸开始</button>
+    </div>
+    <p class="intro-note">十一段关键旅程 · 原创程序化 SVG 插画 · 无外部图片与音频依赖<br>时间标记采用原著相对纪年；章节顺序为主题叙事顺序。</p>
+  </div>
+</section>
+
+<div class="game hidden" id="game">
+  <header class="topbar">
+    <a class="brand" href="#" id="brandHome" aria-label="返回开场"><span class="brand-mark"></span><span><b>三体 · 宇宙回声</b><small>THE THREE-BODY PROBLEM</small></span></a>
+    <div class="top-status"><span class="status-chapter">当前章节<b id="topChapter">红岸</b></span></div>
+    <div class="top-actions">
+      <button class="icon-btn" id="soundBtn" aria-label="开启或关闭环境音" title="环境音">◌</button>
+      <button class="icon-btn" id="archiveBtn" aria-label="打开章节档案" title="章节档案">☰</button>
+      <button class="icon-btn" id="resetBtn" aria-label="重新开始" title="重新开始">↺</button>
+    </div>
+  </header>
+
+  <main class="story-layout">
+    <aside class="timeline" id="timeline" aria-label="章节时间线"></aside>
+
+    <section class="visual" aria-label="场景插画">
+      <div class="visual-head">
+        <div><div class="visual-kicker" id="visualKicker">01 · FIRST BOOK</div><h2 id="visualTitle">红岸基地</h2></div>
+        <div class="visual-counter" id="visualCounter">FRAME 01 / 11</div>
+      </div>
+      <div class="art-frame" id="artFrame" aria-live="polite"></div>
+      <div class="art-caption">
+        <div class="caption-title"><span id="captionTitle">太阳微波放大</span><span>ORIGINAL SVG SCHEMATIC</span></div>
+        <div class="caption-tags" id="captionTags"></div>
+      </div>
+      <div class="art-note">画面为依据原著关键物件与空间关系绘制的原创结构示意图，不是影视截图；文字与符号为游戏化演绎。</div>
+    </section>
+
+    <section class="narrative" aria-label="剧情与选择">
+      <div class="chapter-meta"><i></i><span id="chapterMeta">第一部 · 1967</span></div>
+      <h1 class="chapter-title" id="chapterTitle">红岸</h1>
+      <div class="chapter-subtitle" id="chapterSubtitle">人类亲手打开门</div>
+      <div class="story-log" id="storyLog" aria-live="polite"></div>
+      <div class="choice-area">
+        <div class="choice-label"><span>你的选择</span><span>1 — 3</span></div>
+        <div id="choices"></div>
+      </div>
+      <div class="metrics" aria-label="决策倾向">
+        <div><div class="metric-head"><span>理性</span><b id="rationalValue">50</b></div><div class="meter"><i id="rationalBar"></i></div></div>
+        <div><div class="metric-head"><span>共情</span><b id="empathyValue">50</b></div><div class="meter empathy"><i id="empathyBar"></i></div></div>
+        <div><div class="metric-head"><span>生存</span><b id="survivalValue">50</b></div><div class="meter survival"><i id="survivalBar"></i></div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal hidden" id="archiveModal" role="dialog" aria-modal="true" aria-labelledby="archiveTitle">
+  <div class="modal-card">
+    <div class="modal-head"><div><h3 id="archiveTitle">文明档案</h3><p>可跳转到任意章节。跳转不会覆盖已记录的三项决策倾向。</p></div><button class="close-btn" data-close="archiveModal" aria-label="关闭">×</button></div>
+    <div class="archive-list" id="archiveList"></div>
+    <p class="legal-note">本页面为学习交流性质的非官方同人互动作品。《三体》三部曲及角色、设定版权归刘慈欣及相关权利人所有。本文件不包含影视截图、他人插画或第三方音频；场景均由本页 SVG 与 Web Audio 程序即时生成。</p>
+  </div>
+</div>
+
+<div class="modal hidden" id="endingModal" role="dialog" aria-modal="true" aria-labelledby="endingTitle">
+  <div class="modal-card ending-card">
+    <div class="ending-orbit"><span>三</span></div>
+    <div class="intro-kicker">THE LAST FIVE KILOGRAMS</div>
+    <h3 id="endingTitle">五公斤的黎明</h3>
+    <p id="endingText"></p>
+    <div class="ending-stats" id="endingStats"></div>
+    <div class="ending-actions"><button class="btn primary" id="endingRestart">从红岸重来</button><button class="btn" id="endingArchive">回看文明档案</button></div>
+    <p class="legal-note">在旧宇宙的墓地上，一颗直径半米的生态球仍亮着。草叶上的一滴露珠折射出晶莹阳光——它不是人类战胜宇宙的证明，只是一小块生命拒绝彻底熄灭的证据。</p>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ==================== 剧情数据 ==================== */
+const CHAPTERS = [
+  {
+    id:"red-coast", no:"01", book:"第一部", title:"红岸", subtitle:"向太阳发出呼唤",
+    time:"1967—1979 · 大兴安岭", location:"红岸基地", scene:"redCoast", focus:"太阳能量镜面 · 叶文洁的抉择",
+    brief:"红岸是最高层批准、以搜寻外星文明为秘密目标的国防工程，叶文洁被调入基地。她发现并利用太阳的能量镜面增益反射效应，于1971年私自向宇宙发射强信号；八年后收到三体世界监听员“不要回答”的警告，仍选择回复。",
+    accuracy:"红岸工程本身确为国家项目；但利用太阳发信及回复三体世界，是叶文洁个人秘密实施的决定，并非基地统一执行的任务。",
+    tags:["叶文洁","太阳放大","不要回答"],
+    intro:"大兴安岭的雪线之上，巨大的抛物面天线缓慢转动。叶文洁在红岸发现了太阳对电波的放大能力。1971年，她越过组织程序，以太阳为天线向宇宙发出地球的声音。八年后，一位不愿同类入侵的三体监听员发来三次警告：不要回答。她凝视着这行字，按下了发射键。",
+    choices:[
+      {title:"重演原著：叶文洁选择回答",desc:"呼唤更高文明介入，期望它改变人类。",result:"电波越过四光年，三体文明由此确定了地球的方向与坐标。这一决定把叶文洁、女儿杨冬和整个人类文明推向未知的世纪。",effect:{rational:1,empathy:2,survival:-2},next:"countdown"},
+      {title:"保留警告，不再回答",desc:"互动推演：尝试切断这次跨星际联系。",result:"这是一条假设分支：没有回答，三体世界便难以从监听信号精确定位地球。它不会成为原著事实，只让你看到一次按键背后的分量。",effect:{rational:4,survival:3},next:"countdown"},
+      {title:"先研究太阳放大机制",desc:"回到技术起点，复核能量镜面的物理证据。",result:"太阳对流层能够被电波扰动，能量镜面可反射并放大特定频段的信号。理解这项技术，才能理解那道来自四光年之外的回答为何真实。",effect:{rational:5,survival:1},next:"countdown"}
+    ]
+  },
+  {
+    id:"countdown", no:"02", book:"第一部", title:"倒计时", subtitle:"幽灵倒计数",
+    time:"2007 · 北京", location:"汪淼的实验室与住所", scene:"countdown", focus:"纳米材料学家 · 照片与视网膜倒计时",
+    brief:"纳米材料学家汪淼被史强带入军方作战中心，调查科学家接连死亡与“科学边界”组织。他拍摄的数码照片出现倒计时，随后倒计时直接投射在视野中。申玉菲要求他停下纳米实验，倒计时果然暂时消失。",
+    accuracy:"原著人物是申玉菲与魏成，不是影视剧中的新角色；魏成是研究三体问题的数学学者，申玉菲则属于ETO。倒计时先于三体游戏出现。",
+    tags:["汪淼","史强","申玉菲"],
+    intro:"汪淼的专业不是天体物理，而是纳米材料。照片里的数字起初被他当作设备故障，直到同样的计数浮现在自己视野中央。申玉菲提出一个近乎侮辱科学直觉的条件：停下纳米实验。机器停转后，倒计时也随之停下——某种力量正在精确操纵他的研究与生活。",
+    choices:[
+      {title:"复核照片并保留原始数据",desc:"排除相机、软件与人为篡改，确认异常不是普通故障。",result:"原始照片和不同时刻的计数组成证据链。汪淼无法解释它，却确认自己面对的不是幻觉；史强推动他继续接近科学边界与申玉菲。",effect:{rational:5,empathy:1},next:"three-body"},
+      {title:"停下纳米实验，验证申玉菲的话",desc:"按对方要求暂停项目，观察倒计时是否变化。",result:"倒计时消失，证明申玉菲知道远超常人的信息，也说明对方的目标包括汪淼的纳米研究。暂停只是验证，不代表倒计时背后的科学封锁已经结束。",effect:{rational:3,survival:2},next:"three-body"},
+      {title:"追问倒计时的尽头",desc:"沿着申玉菲与三体游戏的线索继续调查。",result:"申玉菲没有给出完整答案，却把汪淼引向一个不断毁灭又重启的虚拟世界。要理解这场针对科学家的行动，必须先理解三颗太阳。",effect:{rational:3,survival:1},next:"three-body"}
+    ]
+  },
+  {
+    id:"three-body", no:"03", book:"第一部", title:"三体游戏", subtitle:"三颗太阳的无解轨道",
+    time:"2007 · 三体游戏", location:"不断重启的三体文明", scene:"threeBody", focus:"恒乱纪元 · 人列计算机 · 三日凌空",
+    brief:"汪淼穿戴V装具进入三体游戏，先后接触周文王、墨子、秦始皇、牛顿与冯·诺依曼等角色。游戏展示三体文明在恒纪元与乱纪元中的毁灭轮回，也承担ETO筛选和联络成员的作用。三体问题没有可长期准确预测三颗太阳的一般解析解。",
+    accuracy:"游戏不是跨国玩家实时协作解谜；魏成的研究与三体游戏相关，但真实三体世界的基本困境是混沌系统，无法靠一次公式演算永久预测。",
+    tags:["V装具","人列计算机","混沌系统"],
+    intro:"荒漠的太阳不再只有一个。人们用脱水躲过乱纪元，在恒纪元浸泡复苏。秦始皇的三千万士兵组成人列计算机，试图用逻辑门算出三体运行；三日连珠的引力却将文明再次抹去。每一次重启都在逼近同一个结论：三体运动无法被永久预测，家园必须被放弃。",
+    choices:[
+      {title:"观察文明毁灭，核对三体模型",desc:"不急于寻找万能公式，先理解恒纪元与乱纪元。",result:"记录证明三体系统是混沌的：初始条件的微小差异会迅速放大。三体文明最终唯一的出路，是飞向四光年外那颗拥有稳定太阳的行星。",effect:{rational:5,survival:2},next:"guzheng"},
+      {title:"研究人列计算机的逻辑结构",desc:"观察士兵如何构成与门、或门和非门。",result:"三千万士兵组成庞大的计算系统，能求解一段时间的轨道，却仍无法消除混沌带来的长期不可预测性。算力能延长预见，不能改写三体问题的性质。",effect:{rational:5},next:"guzheng"},
+      {title:"追问游戏背后的组织者",desc:"把虚拟世界的信息与现实中的科学边界联系起来。",result:"游戏并非普通娱乐产品，而是ETO展示三体文明、筛选同路人的入口。汪淼开始接近地球三体组织及“审判日”号掌握的秘密。",effect:{rational:3,survival:2},next:"guzheng"}
+    ]
+  },
+  {
+    id:"guzheng", no:"04", book:"第一部", title:"古筝行动", subtitle:"运河上的五十米飞刃",
+    time:"2007 · 巴拿马运河", location:"盖拉德水道两岸", scene:"guzheng", focus:"纳米飞刃 · 审判日号 · 夺取三体信息",
+    brief:"人类联军为夺取“审判日”号上的三体信息并避免其被销毁，采用斯坦顿提出的方案：汪淼研发的“飞刃”纳米丝被架在盖拉德水道两岸，间距五十厘米。伊文斯掌控的“审判日”号通过时被切成薄片，船上人员死亡，硬盘随后被回收。",
+    accuracy:"飞刃是人类一方部署的，“审判日”号是被切割的ETO舰船；古筝不是ETO部署的武器，更不是两艘船互相攻击。",
+    tags:["飞刃纳米丝","盖拉德水道","伊文斯"],
+    intro:"巴拿马运河最窄的盖拉德水道两岸，两根钢柱之间拉起肉眼难辨的纳米丝。目标不是一艘来犯军舰，而是伊文斯的“审判日”号。行动必须在不损坏存储硬盘的前提下迅速制服整船人员；当巨轮通过时，钢铁像琴码间的弦一样被逐层剖开。",
+    choices:[
+      {title:"复原飞刃阵列的几何布局",desc:"判断支架、水面与船体相对位置，理解为何选择运河。",result:"纳米丝每隔五十厘米排列，河道限制了“审判日”号的航线，船体注定完整通过飞刃阵列。硬盘因体积小且位于切片间隙，仍可能保存可读数据。",effect:{rational:5,survival:1},next:"sophon"},
+      {title:"追踪行动的真正目标",desc:"不是击沉敌船，而是取得未销毁的三体通信记录。",result:"行动的核心是情报。人类需要知道三体舰队、智子与ETO之间的真实联系，也必须阻止伊文斯提前销毁资料。",effect:{rational:4,survival:2},next:"sophon"},
+      {title:"阅读行动代价，不美化胜利",desc:"记录伊文斯及船上人员的死亡与信息回收结果。",result:"古筝行动取得资料，却也是一场致命的伏击。它让人类第一次掌握大量三体情报，但不能被写成没有伤亡、没有道德代价的轻巧胜利。",effect:{rational:3,empathy:3},next:"sophon"}
+    ]
+  },
+  {
+    id:"sophon", no:"05", book:"第一部", title:"智子封锁", subtitle:"物理学被锁死之后",
+    time:"危机纪元初年 · 全球", location:"高能加速器与作战中心", scene:"sophon", focus:"质子二维展开 · 干扰实验 · 全面监视",
+    brief:"人类从“审判日”号资料中得知：三体文明把质子展开成巨大电路并制成智子，再以光速派往地球。智子能够监视人类并干扰高能物理实验，使基础理论难以突破；它们还能在视网膜上制造文字与图像，却无法读懂人的思想。",
+    accuracy:"智子封锁不是让自然界所有物理规律失效，而是干扰关键实验、限制基础科学进步；面壁计划之所以重要，正因为智子无法读取思想。",
+    tags:["质子电路","实验干扰","无法读心"],
+    intro:"回收的资料揭开了封锁的真相：三体工程师将质子二维展开，在巨大表面蚀刻电路，再把它缩回微观维度，制成能够跨越星际监视地球的智能粒子。世界各地的设备没有被炸毁，但关键实验反复得到被操纵的结果。作战中心所有屏幕上，同时出现一句话：你们是虫子。",
+    choices:[
+      {title:"区分科学封锁与物理消失",desc:"判断智子到底改变了实验，还是改变了自然规律。",result:"自然规律仍然存在，现有技术也不会突然停止工作。智子的目标是让人类无法通过实验推进基础理论，从而锁死未来数百年的技术上限。",effect:{rational:5,survival:2},next:"dark-forest"},
+      {title:"寻找智子监视的盲区",desc:"比较电子设备、书面文件与人类思维的可监视程度。",result:"智子可以看见屏幕、听见谈话、观察公开行为，却不能直接进入人的思想。未被说出的战略仍可能保密，这正是面壁计划成立的逻辑基础。",effect:{rational:5,survival:3},next:"dark-forest"},
+      {title:"保留原始实验并交叉验证",desc:"即使数据遭污染，也为未来保留可复核记录。",result:"异常本身也是证据。不同实验室的异常模式证明有一股远超人类的力量在干预科学，但它并不能直接摧毁人类已有的工程与工业。",effect:{rational:4,empathy:1},next:"dark-forest"}
+    ]
+  },
+  {
+    id:"dark-forest", no:"06", book:"第二部", title:"面壁与咒语", subtitle:"向一颗陌生恒星落笔",
+    time:"危机纪元 · 冰湖与星空", location:"罗辑的面壁生涯", scene:"darkForest", focus:"宇宙社会学 · 187J3X1 · 试验咒语",
+    brief:"叶文洁曾提示罗辑研究宇宙社会学，留下“生存是文明第一需要”“文明不断增长和扩张，但宇宙总物质不变”两条公理，以及猜疑链、技术爆炸两个概念。罗辑成为面壁者后向187J3X1恒星发出坐标咒语，后来该恒星被摧毁，验证了黑暗森林图景。",
+    accuracy:"罗辑此时发出的是187J3X1的坐标，不是三体世界坐标；真正针对三体世界的可执行威慑在末日战役之后才建立。",
+    tags:["宇宙社会学","猜疑链","187J3X1"],
+    intro:"冰面之下传来碎裂声，罗辑在寒冷中看见宇宙的另一副面孔。文明之间无法迅速验证善意，技术又可能在宇宙尺度的一瞬间爆炸式增长。他把三十颗恒星与187J3X1的相对位置编成三张图，通过太阳向宇宙广播。那是一次试验，也是一发要在多年后才听见回响的咒语。",
+    choices:[
+      {title:"推导猜疑链与技术爆炸",desc:"理解善意无法验证，为何坐标暴露会招致危险。",result:"生存需求、无法消除的猜疑和技术飞跃的可能，使先发清理成为某些文明的理性选择。黑暗森林不是道德判断，而是一套宇宙尺度的战略推演。",effect:{rational:5,survival:2},next:"droplet"},
+      {title:"确认咒语的目标是187J3X1",desc:"核对三张坐标图与那枚被特别标记的恒星。",result:"罗辑首先拿遥远的187J3X1验证理论，没有立即广播三体世界坐标。后来他冬眠多年，人类观测到那颗恒星已被接近光速的质量点摧毁。",effect:{rational:5,survival:1},next:"droplet"},
+      {title:"比较面壁者与破壁人的博弈",desc:"利用智子无法读心这一唯一的信息差。",result:"泰勒、雷迪亚兹、希恩斯与罗辑被赋予面壁者身份。前三人遭遇破壁，罗辑则把真正战略藏在不被理解的行为里；思想的封闭成为人类最后的战略资源。",effect:{rational:4,survival:2},next:"droplet"}
+    ]
+  },
+  {
+    id:"droplet", no:"07", book:"第二部", title:"末日战役", subtitle:"两千艘战舰与一颗水滴",
+    time:"危机纪元205年 · 太阳系", location:"联合舰队与螳螂号", scene:"droplet", focus:"强相互作用力材料 · 锐角转向 · 星舰地球",
+    brief:"三体探测器水滴先于主力舰队抵达。它长约三点五米，头部浑圆、尾部尖锐，表面为全反射镜面，强相互作用力把分子牢牢钉死。丁仪发出预警后，水滴击穿密集排列的联合舰队；仅“量子”号和“青铜时代”号从主战场逃脱，另有章北海带走的五艘舰船飞向深空。",
+    accuracy:"水滴属于第二部《黑暗森林》，不是第三部；联合舰队为两千余艘而非一千艘。“蓝色空间”号属于章北海带出的五舰编队，并非水滴主战场的两艘逃生舰之一。",
+    tags:["水滴","丁仪","章北海"],
+    intro:"两千余艘恒星级战舰排成一百乘二十的矩形阵列。螳螂号用机械臂捕获那颗三点五米长的银色水滴，丁仪在千万倍放大下仍看不到任何表面起伏。他明白了：分子被强相互作用力钉死，人类所有材料在它面前都如纸片。水滴尾部亮起蓝环，下一秒便贯穿了“无限边疆”号。",
+    choices:[
+      {title:"记录丁仪最后的科学判断",desc:"从显微镜下的完美镜面识别技术代差。",result:"光滑不是脆弱，而是强相互作用力材料的外在表现。激光与电磁炮都不能在水滴表面留下伤痕；密集阵列则让舰队像一列被逐节点燃的灯。",effect:{rational:5,survival:-2},next:"deterrence"},
+      {title:"追随章北海的“前进四”",desc:"回顾自然选择号与四艘追击舰如何提前离开太阳系。",result:"章北海劫持自然选择号驶向深空，四艘追击舰随后组成另一支星舰队伍。它们没有参加联合舰队的主战场毁灭，却将在资源绝境中面对黑暗战役。",effect:{rational:3,survival:5},next:"deterrence"},
+      {title:"辨认主战场的两艘逃生舰",desc:"区分量子号、青铜时代号与蓝色空间号的来路。",result:"水滴毁灭主战场后，只有量子号与青铜时代号完整逃脱。蓝色空间号早已在章北海编队内，两条逃亡路线后来共同影响人类与三体文明的命运。",effect:{rational:5,survival:2},next:"deterrence"}
+    ]
+  },
+  {
+    id:"deterrence", no:"08", book:"第二部", title:"墓地威慑", subtitle:"我对三体世界说话",
+    time:"危机纪元208年 · 杨冬墓旁", location:"叶文洁与杨冬的墓地", scene:"deterrence", focus:"雪地工程 · 摇篮系统 · 黑暗森林威慑",
+    brief:"末日战役后，水滴封锁太阳，罗辑无法再用太阳放大电波。他利用雪地工程部署在太阳轨道上的三千六百一十四枚核弹与油膜物质，以自身生命体征连接摇篮系统：若他死亡，爆炸形成的尘埃云会使太阳闪烁，向宇宙发送三体世界坐标。三体世界被迫妥协。",
+    accuracy:"威慑成立于末日战役之后，而不是水滴到来之前；罗辑以同归于尽的可执行装置建立威慑，并非真的立刻广播三体坐标。",
+    tags:["罗辑","三千六百一十四枚核弹","执剑人"],
+    intro:"雨后的墓园刚刚露出晨光。罗辑在叶文洁与杨冬的墓旁挖好自己的墓穴，用生命体征监测仪连接雪地工程。只要他死去，维持信号就会中断，太阳轨道上的核弹将依次爆炸，用尘埃云把三体世界的坐标写进星空。他抬起枪：我对三体世界说话。",
+    choices:[
+      {title:"理解摇篮系统的反触发逻辑",desc:"持续信号维持安全，信号中断才触发广播。",result:"罗辑活着本身成为保险丝。三体世界不能杀他，也不能让装置失效，只能停止水滴对太阳的电磁封锁、命令其他水滴转向，并让主力舰队改变航向。",effect:{rational:5,survival:4},next:"two-dimension"},
+      {title:"核对威慑为何可信",desc:"不是口头威胁，而是敌人能够验证的自动后果。",result:"核弹、油膜物质、精确位置与生命监测组成完整链路。威慑的有效性来自可执行与不可轻易解除，而非罗辑个人拥有超级武器。",effect:{rational:5,survival:3},next:"two-dimension"},
+      {title:"记住两个文明付出的代价",desc:"坐标一旦广播，暴露的不会只有三体世界。",result:"三体与太阳系相距很近，又已经发生过联系，一方坐标暴露也会使另一方陷入危险。罗辑赢得的是恐怖平衡下的和平，不是没有代价的胜利。",effect:{rational:4,empathy:3},next:"two-dimension"}
+    ]
+  },
+  {
+    id:"two-dimension", no:"09", book:"第三部", title:"二维化", subtitle:"太阳系成为一幅画",
+    time:"掩体纪元67年 · 太阳系", location:"冥王星与星环号", scene:"twoDimension", focus:"威慑终结 · 云天明童话 · 二向箔",
+    brief:"程心接任执剑人后未能启动广播，威慑终结；蓝色空间号后来利用万有引力号广播三体坐标。人类从云天明的三个童话与智子的提示中寻找生路，发展出掩体、黑域与光速飞船三条思路。掩体纪元67年，来自清理者的二向箔抵达，三维太阳系持续跌落成二维；原著还暗示可能有比歌者更早出手的文明。",
+    accuracy:"二向箔不是黑洞或普通爆炸，而是不可逆的维度跌落。程心与AA乘唯一装备曲率驱动引擎的星环号离开，罗辑留在冥王星；光速飞船成为太阳系人类最后的逃生路径。",
+    tags:["执剑人","二向箔","星环号"],
+    intro:"智子所说的宇宙安全声明、云天明藏在童话里的针眼画师与曲率航迹，终于指向同一幅未来。一张白色薄膜穿过太阳系，空间开始失去厚度，欧洲六号、木星与地球先后展开成无边细节。程心和AA驾驶星环号抵达冥王星，罗辑把地球文明博物馆与最后的曲率驱动飞船交给她们，自己留在暮色里。",
+    choices:[
+      {title:"辨认三条生存路线的结局",desc:"比较掩体、黑域与光速飞船，不混淆概念。",result:"掩体能防光粒却不能防降维；黑域以降低光速形成安全声明，却未能在太阳系实现；只有曲率驱动的星环号让程心与AA逃出二维化区域。",effect:{rational:5,survival:4},next:"universe-647"},
+      {title:"连接童话与真实技术",desc:"理解针眼画师、无故事王国与曲率航迹的隐喻。",result:"童话不是直白的说明书，而是把情报伪装在叙事中。人类最终从多层隐喻里辨认出降维打击与光速飞船，却为理解它们付出了漫长代价。",effect:{rational:5,empathy:2},next:"universe-647"},
+      {title:"跟随星环号飞向DX3906",desc:"接受罗辑的安排，带着文明记忆离开太阳系。",result:"星环号达到光速，程心与AA成为太阳系二维化的遥远见证者。目标是云天明曾送给程心的DX3906星系，她们将在那里遇见来自星舰地球的关一帆。",effect:{empathy:3,survival:5},next:"universe-647"}
+    ]
+  },
+  {
+    id:"universe-647", no:"10", book:"第三部", title:"647号宇宙", subtitle:"一公里见方的田园",
+    time:"银河纪元409年后 · 蓝星", location:"云天明留下的小宇宙入口", scene:"universe647", focus:"死线扩散 · 647号小宇宙 · 时间之外的往事",
+    brief:"程心与关一帆因死线扩散进入低光速环境，冬眠醒来时，蓝星已过去约一千八百九十万年。云天明与艾AA的一生留在石刻上，另一份礼物则是647号小宇宙的入口。程心和关一帆进入其中，见到管理者智子，并在此生活、学习三体文字、撰写《时间之外的往事》。",
+    accuracy:"647号是三体制造的最小一类小宇宙，边长约一千米、采用封闭空间结构；入口能在大宇宙移动，小宇宙本身不在大宇宙内部。",
+    tags:["DX3906","关一帆","小宇宙"],
+    intro:"死线破裂后的低光速环境，让十六天变成一千八百九十万年。程心在蓝星岩层中读到艾AA与云天明留下的字，随后看见一道由发光直线构成的门。门后是边长约一千米的647号宇宙：黑土、麦田、白房子、溪流与机器人。智子从屋里走出来，欢迎他们来到时间之外。",
+    choices:[
+      {title:"走到世界尽头，验证空间结构",desc:"观察为何越过边界会返回起点，远处又为何出现自己的背影。",result:"小宇宙是正立方体，相对的面彼此相连，光线越过边界也返回起点。周围重复的田园与人物不是无穷世界，而是同一世界的多重映像。",effect:{rational:5,survival:1},next:"return-movement"},
+      {title:"学习三体文字并记录文明记忆",desc:"理解小宇宙资料库，撰写《时间之外的往事》。",result:"程心和关一帆在智子的帮助下学习三体表意文字，阅读两个文明的资料。个人记忆逐渐成为文明档案的一部分。",effect:{rational:4,empathy:3},next:"return-movement"},
+      {title:"追查大宇宙的质量流失",desc:"研究数百个三体小宇宙和其他文明小宇宙带走的物质。",result:"小宇宙的质量都来自大宇宙。关一帆意识到，如果流失超过临界值，宇宙将由封闭转为开放，无法坍缩重启，只会在永恒膨胀中死去。",effect:{rational:5,survival:2},next:"return-movement"}
+    ]
+  },
+  {
+    id:"return-movement", no:"11", book:"第三部", title:"回归运动", subtitle:"把质量还给宇宙",
+    time:"647号宇宙时间第二年 · 超膜广播", location:"647号宇宙与大宇宙之门", scene:"returnMovement", focus:"回归运动声明 · 记忆体 · 约五公斤生态球",
+    brief:"大宇宙通过超膜向所有小宇宙广播回归运动声明：总质量已降至临界值以下，请归还带走的质量，只把记忆体送往新宇宙。程心与关一帆最终拆除小宇宙的生态与物质层，只留下储存文明记忆的漂流瓶，以及直径约半米、装着水球、绿藻、青草和小鱼的生态球。",
+    accuracy:"原著收束不是一句“发出便安全”的安全声明，而是回归运动的质量归还；最后留下的五公斤生态球，是生命与文明记忆的微小例外。",
+    tags:["回归运动","记忆体","五公斤生态球"],
+    intro:"广播以无数种语言重复同一份简短声明。它穿过超膜，抵达每一个偷走质量的微型宇宙。三体文字和地球文字最终同时出现，证明两个文明都在这个宇宙的漫长历史上留下了痕迹。门在黑暗中打开，机器人开始拆除土壤与空气。",
+    choices:[
+      {title:"归还质量，把文明记忆送往新宇宙",desc:"理解责任，让记忆而非物质成为火种。",result:"生态层被逐层拆去。种子、房屋、空气和太阳都回到大宇宙；一个量子存储的漂流瓶带着文明记忆，等待新宇宙的拾取者。",effect:{rational:3,empathy:3,survival:1},next:"ending"},
+      {title:"在归零前坚持留下五公斤生命",desc:"不追求完美答案，只为生命保留一个不能被归还的例外。",result:"门关上后，一千米见方的宇宙只剩生态球里的小太阳还亮着。水球中的鱼在绿藻间穿游，草叶上的露珠折射出阳光。旧宇宙或许仍将坍缩，但这五公斤拒绝彻底熄灭。",effect:{empathy:5,rational:-1},next:"ending"},
+      {title:"把文明记忆装进漂流瓶",desc:"留下量子存储的记忆体，等待新宇宙的拾取者。",result:"金属盒保存着三体与地球文明的大量记忆。新宇宙诞生后，它将越过宇宙之门，并持续用中微子束播放所存的信息。",effect:{empathy:3,rational:4,survival:2},next:"ending"}
+    ]
+  }
+];
+
+/* ==================== 原创 SVG 场景 ==================== */
+function seededStars(count, maxX=1200, maxY=680){
+  let seed=20261125;const out=[];
+  for(let i=0;i<count;i++){
+    seed=(seed*9301+49297)%233280;const x=(seed/maxX)*max0(maxX);
+    seed=(seed*9301+49297)%233280;const y=(seed/maxY)*maxY;
+    seed=(seed*9301+49297)%233280;const r=.35+(seed/233280)*1.35;
+    const op=.18+(seed/233280)*.62;
+    out.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" fill="#dfe9e8" opacity="${op.toFixed(2)}"/>`);
+  }
+  return out.join("");
+}
+function max0(n){return Math.max(1,n)}
+function svg(inner,label){return `<svg class="scene-svg" viewBox="0 0 1200 680" role="img" aria-label="${label}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`}
+function label(text,x,y,color="#7f898a",size=10,anchor="start",extra=""){
+  return `<text x="${x}" y="${y}" fill="${color}" font-family="Consolas,monospace" font-size="${size}" letter-spacing="2" text-anchor="${anchor}" ${extra}>${text}</text>`;
+}
+function titleLabel(cn,en,x,y){
+  return `<text x="${x}" y="${y}" fill="#d9dedb" font-family="'Noto Serif SC',serif" font-size="18" letter-spacing="5">${cn}</text><text x="${x}" y="${y+21}" fill="#626b6c" font-family="Consolas,monospace" font-size="8" letter-spacing="3">${en}</text>`;
+}
+const SCENES = {
+  redCoast(){
+    return svg(`<rect width="1200" height="680" fill="url(#gNight)"/>${seededStars(105)}
+      <circle cx="930" cy="142" r="150" fill="url(#gRed)" opacity=".62"/><circle cx="930" cy="142" r="28" fill="#f8d69d" filter="url(#fGlow)"/>
+      <g opacity=".2" fill="none" stroke="#e55e5d"><circle cx="930" cy="142" r="72"/><circle cx="930" cy="142" r="103"/><path d="M812 142h236M930 24v236"/></g>
+      <path d="M0 430L150 360 275 416 420 320 570 414 720 334 850 403 1010 346 1200 420V680H0Z" fill="#0b1113"/>
+      <path d="M0 474L120 430 255 468 390 395 530 456 670 412 815 468 980 410 1200 476V680H0Z" fill="#12191a"/>
+      <path d="M0 520Q210 487 430 529T860 524T1200 510V680H0Z" fill="#d9e0dc" opacity=".8"/>
+      <path d="M0 564Q250 535 520 574T1200 560V680H0Z" fill="#eef1ec" opacity=".82"/>
+      <g transform="translate(245 420)">
+        <path d="M-44 130L-17-5 21-5 55 130" fill="none" stroke="#778081" stroke-width="9"/><path d="M-28 70H34M-36 100H45M-10 12L35 100M18 12L-25 100" stroke="#596263" stroke-width="4"/>
+        <ellipse cx="0" cy="-42" rx="112" ry="65" fill="#151d1f" stroke="#9ca6a5" stroke-width="6" transform="rotate(-14)"/>
+        <ellipse cx="0" cy="-42" rx="82" ry="42" fill="#080c0e" stroke="#697475" stroke-width="3" transform="rotate(-14)"/>
+        <path d="M-18 5L0-42 22 6" fill="none" stroke="#aeb6b4" stroke-width="4"/><circle cx="0" cy="-42" r="7" fill="#e05255" filter="url(#fGlow)"/>
+      </g>
+      <path d="M340 370L840 190 890 154 385 338Z" fill="#e05255" opacity=".075"/><path d="M345 370L900 142" stroke="#ff8c72" stroke-width="1" opacity=".35" stroke-dasharray="4 10"/>
+      <path d="M410 548H760l-55 28H468Z" fill="#0b1113"/><path d="M430 548H735" stroke="#e05255" stroke-width="2"/>
+      <path d="M455 552Q520 540 575 552T700 552" fill="none" stroke="#58d7cf" stroke-width="2" class="wave"/>
+      <path d="M455 566Q520 554 575 566T700 566" fill="none" stroke="#58d7cf" stroke-width="1.5" opacity=".5" class="wave d1"/>
+      ${titleLabel("红岸基地","RED COAST / SOLAR AMPLIFICATION",52,54)}
+      ${label("1967—1979 · 大兴安岭",52,94)}<g transform="translate(890 300)">${label("SOLAR AMPLIFICATION",0,0,"#b96f69",8)}</g>
+      ${label("SUN / 12,000 MHz / POWER AMPLIFIED",785,320,"#636b6c",8,"start",'transform="rotate(16 785 320)"')}
+      <g transform="translate(70 570)">${label("RADAR ARRAY",0,0,"#8a9292",8)}${label("ACTIVE SEARCH",0,17,"#4f5859",7)}</g>`,"红岸基地的山谷雷达与被太阳放大的无线电波");
+  },
+  countdown(){
+    return svg(`<rect width="1200" height="680" fill="url(#gDeep)"/>${seededStars(48)}
+      <circle cx="760" cy="225" r="260" fill="url(#gCyan)" opacity=".08"/>
+      <g opacity=".18" fill="none" stroke="#75aaa9"><circle cx="760" cy="225" r="118"/><circle cx="760" cy="225" r="185"/><ellipse cx="760" cy="225" rx="248" ry="70" transform="rotate(-18 760 225)"/></g>
+      <path d="M0 435L130 390 250 426 370 367 510 420 670 350 820 410 980 360 1200 430V680H0Z" fill="#111719"/>
+      <g fill="#0a0e10" stroke="#303a3b"><rect x="50" y="455" width="100" height="225"/><rect x="165" y="485" width="85" height="195"/><rect x="275" y="430" width="125" height="250"/><rect x="425" y="495" width="95" height="185"/></g>
+      <g transform="translate(470 110)">
+        <rect width="470" height="430" rx="5" fill="#d7d1c4" opacity=".93"/>
+        <rect x="18" y="18" width="434" height="394" fill="#202526" opacity=".9"/>
+        <ellipse cx="210" cy="154" rx="88" ry="105" fill="#101516"/><path d="M129 165Q210 80 291 165" fill="#0a0d0e"/>
+        <circle cx="298" cy="290" r="66" fill="#0a0d0e" stroke="#818a89" stroke-width="7"/><circle cx="298" cy="290" r="49" fill="#12191a"/>
+        <path d="M298 247V291L326 305" fill="none" stroke="#e05255" stroke-width="5" stroke-linecap="round"/>
+        <text x="298" y="383" text-anchor="middle" fill="#ff6f68" font-family="Consolas,monospace" font-size="27" letter-spacing="4" class="blink">119: 59: 42</text>
+        <path d="M20 424L450 32" stroke="#e05255" stroke-width="2" opacity=".6"/><circle cx="286" cy="280" r="84" fill="none" stroke="#e05255" stroke-width="3" opacity=".85"/>
+      </g>
+      <g transform="translate(1000 430)" opacity=".6"><circle cx="0" cy="0" r="45" fill="#0b0f10" stroke="#697273"/><ellipse rx="12" ry="45" fill="#d9d7ce"/><circle cx="0" cy="-16" r="8" fill="#e05255"/></g>
+      ${titleLabel("照片里的倒计时","COUNTDOWN / SCIENTIFIC BOUNDARY",52,54)}${label("2007 · 北京",52,94)}
+      ${label("NANOMATERIAL RESEARCHER",928,545,"#657071",8)}${label("SHEN YUFEI / WEI CHENG",928,563,"#657071",8)}`,"带有异常倒计时的照片、腕表与远处三体轨道");
+  },
+  threeBody(){
+    return svg(`<rect width="1200" height="680" fill="url(#gNight)"/>${seededStars(90)}
+      <g><circle cx="380" cy="190" r="68" fill="url(#gGoldGlow)"/><circle cx="380" cy="190" r="19" fill="#ffdda0" filter="url(#fGlow)"/></g>
+      <g class="float"><circle cx="665" cy="132" r="48" fill="url(#gRed)"/><circle cx="665" cy="132" r="13" fill="#ffd5ae" filter="url(#fGlow)"/></g>
+      <g class="float d2"><circle cx="915" cy="235" r="58" fill="url(#gGoldGlow)"/><circle cx="915" cy="235" r="15" fill="#fff0c8" filter="url(#fGlow)"/></g>
+      <g fill="none" stroke="#62716e" opacity=".38"><ellipse cx="600" cy="200" rx="430" ry="170" transform="rotate(-13 600 200)"/><ellipse cx="600" cy="200" rx="330" ry="250" transform="rotate(22 600 200)"/><ellipse cx="600" cy="200" rx="500" ry="105" transform="rotate(37 600 200)"/></g>
+      <g opacity=".68"><path d="M530 278l16-25 16 25-16 24Z" fill="#8bd4cd"/><path d="M790 292l12-19 12 19-12 18Z" fill="#c5a76d"/><circle cx="460" cy="315" r="9" fill="#687779"/></g>
+      <path d="M0 440Q200 390 390 442T780 436T1200 430V680H0Z" fill="#3b2d22"/><path d="M0 470Q190 430 420 475T820 466T1200 470V680H0Z" fill="#5a412d" opacity=".8"/>
+      <path d="M0 545Q250 505 520 550T1200 538V680H0Z" fill="#76563a" opacity=".55"/>
+      <g fill="#090c0d"><circle cx="326" cy="502" r="9"/><path d="M314 515h24l7 49h-38Z"/><circle cx="850" cy="488" r="7"/><path d="M841 497h18l5 39h-28Z"/></g>
+      <g opacity=".22" stroke="#4ca9a4" fill="none"><path d="M80 590H1120M80 560H1120M80 530H1120M80 500H1120M120 480v130M260 480v130M400 480v130M540 480v130M680 480v130M820 480v130M960 480v130M1100 480v130"/></g>
+      ${titleLabel("三体游戏","CHAOTIC EPOCH / CROSS-NATIONAL TEAM",52,54)}${label("2007 · 三颗太阳",52,94)}
+      ${label("恒纪元",275,365,"#d6ad68",11,"middle")}${label("乱纪元",700,354,"#e05255",11,"middle")}
+      ${label("C:>",1060,570,"#58d7cf",15,"middle",'filter="url(#fText)"')}`,"三颗太阳围绕荒漠世界运行，呈现恒纪元与乱纪元");
+  },
+  sophon(){
+    return svg(`<rect width="1200" height="680" fill="url(#gDeep)"/>${seededStars(72)}
+      <ellipse cx="590" cy="335" rx="450" ry="210" fill="none" stroke="#647678" stroke-width="22" opacity=".32"/>
+      <ellipse cx="590" cy="335" rx="450" ry="210" fill="none" stroke="#9da9a7" stroke-width="4" opacity=".72"/>
+      <ellipse cx="590" cy="335" rx="340" ry="300" fill="none" stroke="#4b5c5e" stroke-width="12" opacity=".38"/>
+      <ellipse cx="590" cy="335" rx="340" ry="300" fill="none" stroke="#7e9292" stroke-width="2" opacity=".7"/>
+      <g opacity=".5" stroke="#58d7cf" fill="none"><path d="M170 335H1010M590 75V595"/><path d="M220 290C400 155 780 155 960 290" stroke-dasharray="5 8"/></g>
+      <circle cx="590" cy="335" r="115" fill="url(#gCyan)" opacity=".75"/><circle cx="590" cy="335" r="72" fill="#0a1113" stroke="#79d9d1" stroke-width="2"/>
+      <g fill="none" stroke="#d8e3df" opacity=".4"><ellipse cx="590" cy="335" rx="64" ry="24" transform="rotate(25 590 335)"/><ellipse cx="590" cy="335" rx="63" ry="23" transform="rotate(88 590 335)"/></g>
+      <text x="590" y="345" text-anchor="middle" fill="#ff766e" font-family="'Noto Serif SC',serif" font-size="27" letter-spacing="8" filter="url(#fText)">你们是虫子</text>
+      <g><rect x="35" y="70" width="210" height="120" rx="4" fill="#0a1113" stroke="#445354"/><rect x="960" y="82" width="205" height="120" rx="4" fill="#0a1113" stroke="#445354"/>
+        ${label("PROTON EVENT",55,96,"#7b8989",8)}${label("RESULT: CORRUPTED",55,119,"#e05255",9)}${label("LOW-DIMENSION",980,108,"#7b8989",8)}${label("11D → 3D",980,131,"#d4a65f",9)}</g>
+      <g fill="#b7e4df"><circle cx="230" cy="335" r="4"/><circle cx="948" cy="335" r="4"/><circle cx="590" cy="100" r="4"/><circle cx="590" cy="570" r="4"/></g>
+      <path d="M220 335H475M705 335H950M590 90V220M590 450V580" stroke="#58d7cf" stroke-width="1.5" opacity=".5" class="wave"/>
+      ${titleLabel("智子封锁","SOPHON / LOW-DIMENSION EXPANSION",52,54)}${label("基础实验结果被持续干预",52,94)}
+      ${label("SCIENCE DOES NOT DISAPPEAR — IT REACHES A BOUNDARY",52,625,"#667071",8)}`,"大型粒子对撞机中被刻字的质子与低维智子示意");
+  },
+  guzheng(){
+    return svg(`<rect width="1200" height="680" fill="url(#gNight)"/>${seededStars(35)}
+      <circle cx="970" cy="140" r="150" fill="url(#gGoldGlow)" opacity=".2"/>
+      <path d="M0 130L200 55 330 145 455 95 520 0H0ZM1200 110L1000 45 890 135 770 70 700 0H1200Z" fill="#10191a"/>
+      <path d="M0 265L175 170 320 225 480 120 515 680H0ZM1200 250L1040 165 895 225 755 115 690 680H1200Z" fill="#132220"/>
+      <path d="M0 330L240 225 405 290 505 200 510 680H0ZM1200 325L985 230 830 285 720 200 690 680H1200Z" fill="#1a2c27"/>
+      <path d="M500 160L700 160 910 680H285Z" fill="url(#gOcean)"/>
+      <g fill="none" stroke="#6a9a9c" opacity=".3"><path d="M485 260H720M460 360H755M430 470H805M390 580H860"/><path d="M530 180L430 680M670 180L780 680"/></g>
+      <g transform="translate(610 350)">
+        <path d="M-215 15H215L155 100H-155Z" fill="#172023" stroke="#899795" stroke-width="3"/>
+        <path d="M-160 100H160L145 119H-145Z" fill="#080d0f"/>
+        <rect x="-110" y="-45" width="220" height="65" fill="#263133" stroke="#6c7979"/>
+        <rect x="-60" y="-105" width="112" height="60" fill="#313b3c" stroke="#83908e"/>
+        <rect x="-28" y="-145" width="48" height="40" fill="#1b2527"/><path d="M0-145V-210M-30-184H28" stroke="#8d9895" stroke-width="3"/>
+        <g fill="#d7ad67"><rect x="-85" y="-26" width="16" height="8"/><rect x="-50" y="-26" width="16" height="8"/><rect x="-15" y="-26" width="16" height="8"/><rect x="20" y="-26" width="16" height="8"/><rect x="55" y="-26" width="16" height="8"/></g>
+        ${label("审判日号",0,70,"#b7bfba",11,"middle")}
+      </g>
+      <g fill="#303c3d" stroke="#899492"><rect x="310" y="205" width="22" height="330"/><rect x="888" y="205" width="22" height="330"/></g>
+      <g stroke="#ed8c7c" stroke-width="1" opacity=".62" class="slice-line">${Array.from({length:10},(_,i)=>`<path d="M320 ${240+i*28}H900"/>`).join("")}</g>
+      <path d="M321 220H899M321 510H899" stroke="#f6b49e" stroke-width="2" opacity=".48"/>
+      ${titleLabel("古筝行动","GUZHENG / PANAMA CANAL / NANO-FILAMENTS",52,54)}${label("2007 · 盖拉德水道",52,94)}
+      ${label("人类联军 · 飞刃阵列",84,586,"#d8ad68",10)}${label("间距 50 cm",84,607,"#707d7c",8)}
+      ${label("两岸钢柱固定纳米丝",1055,586,"#778586",8,"end")}`,"巴拿马盖拉德水道两岸的人类飞刃阵列与通过其中的审判日号");
+  },
+  darkForest(){
+    return svg(`<rect width="1200" height="680" fill="url(#gNight)"/>${seededStars(125)}
+      <g opacity=".4" fill="none" stroke="#62858a"><path d="M120 135L560 80 560 380 120 435Z"/><path d="M560 80L980 175 980 475 560 380Z"/><path d="M120 435L560 380 980 475 540 530Z"/><circle cx="325" cy="255" r="5" fill="#e05255"/><circle cx="710" cy="260" r="5" fill="#e05255"/><circle cx="525" cy="430" r="5" fill="#58d7cf"/></g>
+      <path d="M0 470Q80 390 130 460Q190 340 255 455Q310 365 370 470Q430 380 480 470V680H0Z" fill="#050708"/>
+      <path d="M930 680L950 450 1000 430 1020 320 1060 310 1100 220 1140 235 1200 145V680Z" fill="#0b0f10"/>
+      <g fill="#050708"><path d="M120 520L160 360 200 520Z"/><path d="M225 510L270 325 315 510Z"/><path d="M345 520L378 390 415 520Z"/><path d="M0 525L40 380 80 525Z"/></g>
+      <g transform="translate(1070 430)" fill="#050708"><circle cx="0" cy="0" r="12"/><path d="M-8 14L-15 82H15L8 14Z"/><path d="M-6 25L-34 57M7 25L35 57"/></g>
+      <circle cx="1070" cy="425" r="4" fill="#e05255" class="pulse"/>
+      <g><circle cx="210" cy="552" r="4" fill="#f0b76d"/><circle cx="225" cy="548" r="2" fill="#fff0c8" class="pulse"/></g>
+      <g opacity=".35" fill="none" stroke="#9bb1b0" stroke-dasharray="3 9"><circle cx="118" cy="245" r="78"/><circle cx="118" cy="245" r="132"/><circle cx="118" cy="245" r="195"/></g>
+      ${titleLabel("黑暗森林","DARK FOREST / CHAIN OF SUSPICION",52,54)}${label("危机纪元 · 坐标威慑",52,94)}
+      ${label("生存第一公理",320,110,"#a3acab",10)}${label("技术爆炸",748,120,"#a3acab",10)}${label("暴露坐标 = 成为猎物",558,430,"#d8ad68",11,"middle")}
+      ${label("EXPOSE YOURSELF AND THE HUNTER APPEARS",52,625,"#687273",8)}`,"泰山荒原上的罗辑、坐标投影与黑暗森林理论");
+  },
+  droplet(){
+    return svg(`<rect width="1200" height="680" fill="#030506"/>${seededStars(105)}
+      <defs><pattern id="fleetGrid" width="55" height="40" patternUnits="userSpaceOnUse"><path d="M12 20H43L38 27H17Z" fill="#9aa6a4" opacity=".58"/><path d="M20 14H34L31 19H23Z" fill="#d4d8d4" opacity=".38"/></pattern></defs>
+      <rect x="80" y="88" width="930" height="510" fill="url(#fleetGrid)" opacity=".72"/>
+      <g fill="url(#gRed)" opacity=".85"><circle cx="280" cy="275" r="42"/><circle cx="540" cy="395" r="50"/><circle cx="790" cy="240" r="38"/><circle cx="865" cy="500" r="56"/></g>
+      <g fill="#ffb38e" opacity=".8" class="pulse"><circle cx="280" cy="275" r="9"/><circle cx="540" cy="395" r="10"/><circle cx="790" cy="240" r="8"/><circle cx="865" cy="500" r="11"/></g>
+      <path d="M610 125C520 125 500 205 548 264C580 305 592 365 610 510C628 365 640 305 672 264C720 205 700 125 610 125Z" fill="url(#gSteel)" stroke="#f1f4ef" stroke-width="2" filter="url(#fGlow)"/>
+      <ellipse cx="610" cy="505" rx="36" ry="10" fill="none" stroke="#58d7cf" stroke-width="5" filter="url(#fGlow)" class="pulse"/>
+      <path d="M610 520C580 575 520 615 425 660" fill="none" stroke="#58d7cf" stroke-width="18" opacity=".12" filter="url(#fSoft)"/>
+      <g fill="none" stroke="#ef746c" opacity=".75"><path d="M548 264L510 320 540 395"/><path d="M672 264L710 310 680 400"/></g>
+      ${titleLabel("水滴","WATER DROP / STRONG INTERACTION MATERIAL",52,54)}${label("危机纪元205年 · 联合舰队",52,94)}
+      ${label("FLEET 100 × 20",100,630,"#687273",9)}${label("FIRST ROW: 00:01:18",920,630,"#e05255",9,"end")}`,"水滴贯穿百乘二十联合舰队阵列的银镜面战场");
+  },
+  deterrence(){
+    return svg(`<rect width="1200" height="680" fill="url(#gNight)"/>${seededStars(60)}
+      <circle cx="970" cy="240" r="240" fill="url(#gGoldGlow)" opacity=".48"/><circle cx="970" cy="240" r="34" fill="#f8d9a0" filter="url(#fGlow)"/>
+      <path d="M0 390Q170 340 340 400T660 390T960 400T1200 385V680H0Z" fill="#111819"/>
+      <path d="M0 470Q210 425 420 480T800 465T1200 470V680H0Z" fill="#192121"/>
+      <g transform="translate(410 365)"><path d="M-55 160V10Q0-35 55 10V160Z" fill="#202929" stroke="#667270" stroke-width="2"/><path d="M-45 160H45" stroke="#95a09b" opacity=".35"/>${label("叶文洁",0,80,"#89938f",13,"middle")}${label("1947—2007",0,104,"#626e6b",8,"middle")}</g>
+      <g transform="translate(565 390)"><path d="M-50 150V8Q0-30 50 8V150Z" fill="#202929" stroke="#667270" stroke-width="2"/>${label("杨冬",0,76,"#89938f",13,"middle")}${label("1980—2007",0,100,"#626e6b",8,"middle")}</g>
+      <g transform="translate(705 340)" fill="#070a0b"><circle cx="0" cy="0" r="15"/><path d="M-16 20L-26 145H25L15 20Z"/><path d="M-10 42L-68 82M8 42L40 88" stroke="#070a0b" stroke-width="15" stroke-linecap="round"/><path d="M-14 142L-30 218M13 142L29 218" stroke="#070a0b" stroke-width="16"/></g>
+      <g transform="translate(820 100)"><circle cx="0" cy="70" r="48" fill="url(#gSteel)" opacity=".6"/><circle cx="-90" cy="110" r="34" fill="url(#gSteel)" opacity=".43"/><circle cx="83" cy="140" r="28" fill="url(#gSteel)" opacity=".36"/>${label("住 手",0,76,"#e05255",15,"middle")}${label("住 手",-90,115,"#e05255",10,"middle")}${label("住 手",83,144,"#e05255",9,"middle")}</g>
+      <g fill="none" stroke="#b58b54" opacity=".3"><ellipse cx="940" cy="210" rx="190" ry="74" transform="rotate(-18 940 210)"/><ellipse cx="940" cy="210" rx="245" ry="96" transform="rotate(-18 940 210)"/></g>
+      <g fill="#d8ad68" class="pulse"><circle cx="790" cy="154" r="3"/><circle cx="1020" cy="98" r="3"/><circle cx="1102" cy="225" r="3"/><circle cx="900" cy="301" r="3"/></g>
+      <path d="M705 445L660 390" stroke="#b9c1bb" stroke-width="2"/><circle cx="660" cy="390" r="4" fill="#e05255"/>
+      ${titleLabel("墓地威慑","DARK FOREST DETERRENCE / CRADLE SYSTEM",52,54)}${label("危机纪元208年 · 黎明",52,94)}
+      ${label("我对三体世界说话",715,610,"#c6cec7",14,"middle")}
+      ${label("3614 NUCLEAR BOMBS / SOLAR ORBIT",52,638,"#687573",8)}`,"罗辑在叶文洁和杨冬墓旁建立黑暗森林威慑，三个智子球体显示住手");
+  },
+  twoDimension(){
+    return svg(`<rect width="1200" height="680" fill="url(#gNight)"/>${seededStars(80)}
+      <g transform="translate(595 290)">
+        <path d="M-320-210L-35-115 250-212 530-112 50 10Z" fill="#142024" stroke="#657779" stroke-width="2"/>
+        <path d="M-320-210V40L50 205 530-52V-112L50 10-320-210M-320 40L50 205 50 10M530-52L50 205" fill="none" stroke="#566568" stroke-width="2"/>
+        <circle cx="50" cy="10" r="68" fill="url(#gPlanet)" stroke="#718183"/>
+        <g fill="none" stroke="#d3aa67" opacity=".65"><ellipse cx="50" cy="10" rx="118" ry="37" transform="rotate(-16 50 10)"/><ellipse cx="50" cy="10" rx="160" ry="52" transform="rotate(8 50 10)"/></g>
+        <circle cx="-138" cy="-91" r="12" fill="#8e9897"/><circle cx="250" cy="-95" r="8" fill="#8e9897"/>
+      </g>
+      <g transform="translate(675 225) rotate(-8)"><rect x="-78" y="-46" width="156" height="92" rx="2" fill="#f3f2e9" stroke="#fff" stroke-width="2" filter="url(#fGlow)"/><rect x="-68" y="-36" width="136" height="72" fill="#d7d5ca"/></g>
+      <path d="M0 520L1200 520 1200 680 0 680Z" fill="#d8d3c7" opacity=".08"/><path d="M0 520H1200" stroke="#e05255" stroke-width="2" opacity=".75"/>
+      <g opacity=".55"><path d="M120 550Q340 500 520 557T900 545T1170 555" fill="none" stroke="#58d7cf" stroke-width="3"/><path d="M80 585Q290 540 500 592T880 580T1160 590" fill="none" stroke="#d8ad68" stroke-width="2"/><path d="M190 620Q400 585 620 628T1080 615" fill="none" stroke="#e05255" stroke-width="2"/></g>
+      <g stroke="#6f7c7d" opacity=".22">${Array.from({length:10},(_,i)=>`<path d="M${i*120} 520L${-260+i*180} 680"/>`).join("")}</g>
+      ${titleLabel("二维化","TWO-DIMENSIONAL FOIL / DIMENSIONAL FALL",52,54)}${label("掩体纪元67年 · 太阳系",52,94)}
+      ${label("3D",175,490,"#e05255",14)}${label("→",235,490,"#d8ad68",18)}${label("2D",280,490,"#58d7cf",14)}
+      ${label("8.5 cm × 5.2 cm",930,160,"#a9b0ae",9,"middle")}`,"二向箔把三维太阳系展开成二维画面");
+  },
+  universe647(){
+    return svg(`<rect width="1200" height="680" fill="url(#gNight)"/>${seededStars(95)}
+      <g transform="translate(585 335)">
+        <path d="M-420-250L170-250 420 0 170 250-420 250-170 0Z" fill="#0d1617" stroke="#6f8584" stroke-width="3"/>
+        <path d="M-420-250L170-250 170 250-420 250M170-250L420 0 170 250M-420-250L-170 0-420 250" fill="none" stroke="#4f6263" stroke-width="2"/>
+        <path d="M-345-170L130-170 335 0 130 170-345 170-180 0Z" fill="#1d2c24" opacity=".75"/>
+        <path d="M-330-145Q-100-185 120-105T325-20L120 120-330 145-180 0Z" fill="url(#gField)" opacity=".85"/>
+        <path d="M-330 40Q-120 0 80 42T320 5" fill="none" stroke="#69b4ad" stroke-width="7" opacity=".7"/>
+        <g transform="translate(80 -65)"><path d="M-45 25L0-25 48 25Z" fill="#e9e3d7"/><rect x="-7" y="-7" width="16" height="32" fill="#303a37"/><rect x="-28" y="-2" width="12" height="9" fill="#58d7cf"/></g>
+        <circle cx="-225" cy="-90" r="38" fill="url(#gGoldGlow)"/><circle cx="-225" cy="-90" r="10" fill="#fff1c9" filter="url(#fGlow)"/>
+        <g fill="#0b0e0f"><circle cx="15" cy="70" r="6"/><path d="M7 79h16l5 28H2Z"/><circle cx="48" cy="66" r="5"/><path d="M41 73h14l4 24H37Z"/></g>
+      </g>
+      <g transform="translate(1030 195)"><circle r="70" fill="url(#gCyan)" opacity=".2"/><circle r="51" fill="none" stroke="#8ee2dc" stroke-width="2"/><ellipse cx="0" cy="0" rx="30" ry="51" fill="#5bbeb8" opacity=".17"/><path d="M-18 5Q0-9 20 7Q10 18-8 16Z" fill="#e8e0ce"/><circle cx="5" cy="3" r="1.8" fill="#060909"/></g>
+      ${titleLabel("647号宇宙","CLOSED CUBE UNIVERSE / PASTORAL AGE",52,54)}${label("银河纪元 · 边长约一千米",52,94)}
+      ${label("4 WALLS / 2 VISIBLE WALLS / NO EXIT",820,620,"#778788",8,"middle")}`,"封闭立方体小宇宙中的田园、白房子、溪流与生态水球");
+  },
+  returnMovement(){
+    return svg(`<rect width="1200" height="680" fill="url(#gNight)"/>${seededStars(70)}
+      <g transform="translate(235 330)" fill="none" stroke="#58d7cf"><ellipse rx="290" ry="180" opacity=".16" class="wave"/><ellipse rx="240" ry="148" opacity=".23" class="wave d1"/><ellipse rx="190" ry="116" opacity=".32" class="wave d2"/></g>
+      <g transform="translate(665 325)"><path d="M-260-195L160-195 260 0 160 195-260 195-160 0Z" fill="#0a1213" stroke="#758a89" stroke-width="3"/>
+        <g opacity=".6" fill="#cfb26d"><circle cx="-150" cy="-75" r="4"/><circle cx="-90" cy="-115" r="3"/><circle cx="-25" cy="-92" r="4"/><circle cx="55" cy="-126" r="3"/><circle cx="135" cy="-83" r="4"/></g>
+        <path d="M-190 45H220" stroke="#58d7cf" stroke-width="2" opacity=".6"/><path d="M-170 80H190" stroke="#d8ad68" stroke-width="2" opacity=".5"/>
+        <rect x="-110" y="-20" width="58" height="42" rx="3" fill="#1d2729" stroke="#8a9897"/><circle cx="-81" cy="-32" r="4" fill="#e05255" class="pulse"/>
+        <circle cx="92" cy="20" r="48" fill="url(#gCyan)" opacity=".18"/><circle cx="92" cy="20" r="34" fill="none" stroke="#8ee2dc" stroke-width="2"/><path d="M78 24Q91 8 107 26Q98 37 81 32Z" fill="#ece4d0"/>
+      </g>
+      <g transform="translate(930 330)"><path d="M-90-220V210M90-220V210M-90-220H90M-90 210H90" fill="none" stroke="#f1eee4" stroke-width="3" filter="url(#fGlow)"/><rect x="-70" y="-200" width="140" height="400" fill="#58d7cf" opacity=".025"/>
+        ${label("MEMORY",-42,-90,"#d8ad68",8)}${label("5 KG",-42,122,"#58d7cf",10)}</g>
+      <g fill="none" stroke="#e05255" opacity=".35"><path d="M420 80Q680 330 420 580"/><path d="M455 55Q730 330 455 605"/></g>
+      ${titleLabel("回归运动","RETURN MOVEMENT / SUPER-MEMBRANE BROADCAST",52,54)}${label("质量归还 · 记忆远航",52,94)}
+      ${label("RETURN MASS — CARRY MEMORY",670,600,"#9ba5a4",9,"middle")}`,"回归运动广播、物质归还通道、记忆体与五公斤生态球");
+  },
+  ending(){
+    return svg(`<rect width="1200" height="680" fill="#020303"/>${seededStars(48)}
+      <g opacity=".15" stroke="#566464"><path d="M180 120H1020V560H180Z"/><path d="M180 120L600 350 1020 120M180 560L600 350 1020 560M600 120V560" fill="none"/></g>
+      <g transform="translate(600 330)"><circle r="150" fill="url(#gCyan)" opacity=".12"/><circle r="112" fill="none" stroke="#78d8d0" stroke-width="2" filter="url(#fGlow)"/>
+        <ellipse rx="57" ry="112" fill="#66c5be" opacity=".16"/><circle cx="0" cy="-45" r="14" fill="#fff3cf" filter="url(#fGlow)"/>
+        <path d="M-34 38Q0 14 38 43Q19 67-16 58Z" fill="#f1e8d3"/><circle cx="12" cy="31" r="2" fill="#060808"/>
+        <path d="M-22 91Q-7 66 14 89" fill="none" stroke="#91d46a" stroke-width="8" stroke-linecap="round"/>
+      </g>
+      <g transform="translate(600 330)"><path d="M-90-38H90" stroke="#e05255" stroke-width="1" opacity=".25"/><path d="M-65 108Q0 60 68 105" fill="none" stroke="#d8ad68" stroke-width="1" opacity=".35"/></g>
+      <circle cx="665" cy="245" r="3" fill="#fff" class="float"/><circle cx="548" cy="302" r="2" fill="#8ee2dc" class="float d1"/><circle cx="622" cy="410" r="2" fill="#f3d79e" class="float d2"/>
+      ${titleLabel("五公斤的黎明","A SMALL SUN IN THE DARK",52,54)}${label("旧宇宙之外，仍有一点光",52,94)}
+      ${label("MEMORY BOX / LIFE / DEW",445,595,"#8f9998",8,"middle")}`,"旧宇宙归于黑暗后，直径半米的生态球仍在发光");
+  }
+};
+
+/* ==================== 游戏状态与交互 ==================== */
+const $ = (selector, root=document) => root.querySelector(selector);
+const $$ = (selector, root=document) => Array.from(root.querySelectorAll(selector));
+const STORE_KEY = "three-body-universe-echo-v2";
+const DEFAULT_STATE = {chapterIndex:0,selectedChoice:null,stats:{rational:50,empathy:50,survival:50},visited:[]};
+let state = loadState();
+let currentChapter = 0;
+let sceneTimer = null;
+
+function readSavedState(){try{return localStorage.getItem(STORE_KEY)}catch(e){return null}}
+function loadState(){
+  try{
+    const raw=readSavedState();
+    if(!raw) return structuredCloneSafe(DEFAULT_STATE);
+    const parsed=JSON.parse(raw);
+    if(!parsed || !Number.isInteger(parsed.chapterIndex) || parsed.chapterIndex<0 || parsed.chapterIndex>=CHAPTERS.length) return structuredCloneSafe(DEFAULT_STATE);
+    return {
+      chapterIndex:parsed.chapterIndex,
+      selectedChoice:Number.isInteger(parsed.selectedChoice)?parsed.selectedChoice:null,
+      stats:{...DEFAULT_STATE.stats,...(parsed.stats||{})},
+      visited:Array.isArray(parsed.visited)?parsed.visited.filter(n=>Number.isInteger(n)&&n>=0&&n<CHAPTERS.length):[]
+    };
+  }catch(e){return structuredCloneSafe(DEFAULT_STATE)}
+}
+function structuredCloneSafe(obj){return JSON.parse(JSON.stringify(obj))}
+function saveState(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch(e){}}
+function clamp(n){return Math.max(0,Math.min(100,n))}
+
+const intro = $("#intro");
+const game = $("#game");
+const artFrame = $("#artFrame");
+const storyLog = $("#storyLog");
+const choicesBox = $("#choices");
+const archiveModal = $("#archiveModal");
+const endingModal = $("#endingModal");
+
+function buildTimeline(){
+  const timeline=$("#timeline");
+  timeline.innerHTML='<div class="timeline-title">Chronology / 章节时间线</div>';
+  CHAPTERS.forEach((chapter,index)=>{
+    const button=document.createElement("button");
+    button.className="timeline-item"+(index===currentChapter?" active":"")+(state.visited.includes(index)?" visited":"");
+    button.dataset.index=index;
+    button.innerHTML=`<span class="tl-no">${String(index+1).padStart(2,"0")}</span><span class="tl-name">${chapter.title}<small class="tl-era">${chapter.time}</small></span>`;
+    button.addEventListener("click",()=>jumpToChapter(index));
+    timeline.appendChild(button);
+  });
+  const foot=document.createElement("div");
+  foot.className="timeline-foot";foot.textContent="时间标记采用原著相对纪年。章节是主题叙事路线，不是逐日年表。";
+  timeline.appendChild(foot);
+}
+function buildArchive(){
+  const list=$("#archiveList");list.innerHTML="";
+  CHAPTERS.forEach((chapter,index)=>{
+    const button=document.createElement("button");
+    button.className="archive-item"+(index===currentChapter?" current":"");
+    button.innerHTML=`<span class="archive-no">${chapter.no} / ${chapter.book}</span><h4>${chapter.title} · ${chapter.subtitle}</h4><p>${chapter.brief}</p><small>${chapter.time} · ${chapter.focus}</small>`;
+    button.addEventListener("click",()=>{closeModal(archiveModal);jumpToChapter(index)});
+    list.appendChild(button);
+  });
+}
+function updateTimeline(){
+  $$(".timeline-item",$("#timeline")).forEach((item,index)=>{
+    item.classList.toggle("active",index===currentChapter);
+    item.classList.toggle("visited",state.visited.includes(index));
+  });
+}
+function appendStoryBlock(type,labelText,text){
+  const block=document.createElement("div");block.className=`story-block ${type}`;
+  const labelNode=document.createElement("div");labelNode.className="label";labelNode.textContent=labelText;
+  const p=document.createElement("p");p.textContent=text;
+  block.append(labelNode,p);storyLog.appendChild(block);
+  requestAnimationFrame(()=>{storyLog.scrollTop=storyLog.scrollHeight});
+  return block;
+}
+function renderChoices(chapter){
+  choicesBox.innerHTML="";
+  chapter.choices.forEach((choice,index)=>{
+    const button=document.createElement("button");button.className="choice";button.dataset.index=index;
+    const key=document.createElement("span");key.className="choice-key";key.textContent=index+1;
+    const body=document.createElement("span");
+    const title=document.createElement("span");title.className="choice-title";title.textContent=choice.title;
+    const desc=document.createElement("span");desc.className="choice-desc";desc.textContent=choice.desc;
+    body.append(title,desc);
+    const effects=document.createElement("span");effects.className="effects";
+    Object.entries(choice.effect||{}).forEach(([name,value])=>{
+      const names={rational:"理性",empathy:"共情",survival:"生存"};
+      const item=document.createElement("span");item.className="effect "+(value>=0?"pos":"neg");item.textContent=`${names[name]} ${value>=0?"+":""}${value}`;effects.appendChild(item);
+    });
+    body.appendChild(effects);button.append(key,body);
+    button.addEventListener("click",()=>chooseOption(index));
+    choicesBox.appendChild(button);
+  });
+}
+function showContinue(chapter,choice){
+  choicesBox.innerHTML="";
+  const button=document.createElement("button");button.className="continue-btn";
+  const nextLabel=choice.next==="ending"?"抵达终局":"进入下一段旅程";
+  button.innerHTML=`<span>${nextLabel}</span><span>→</span>`;
+  button.addEventListener("click",()=>advanceChapter(choice.next));
+  choicesBox.appendChild(button);
+}
+function renderChapter(index,{preserveSelection=true}={}){
+  currentChapter=index;state.chapterIndex=index;
+  if(!state.visited.includes(index))state.visited.push(index);
+  const chapter=CHAPTERS[index];
+  $("#topChapter").textContent=chapter.title;
+  $("#visualKicker").textContent=`${chapter.no} · ${chapter.book}`;
+  $("#visualTitle").textContent=chapter.location;
+  $("#visualCounter").textContent=`FRAME ${String(index+1).padStart(2,"0")} / ${String(CHAPTERS.length).padStart(2,"0")}`;
+  $("#captionTitle").textContent=chapter.focus;
+  $("#captionTags").innerHTML=chapter.tags.map(t=>`<span class="tag">${t}</span>`).join("");
+  $("#chapterMeta").textContent=`${chapter.book} · ${chapter.time}`;
+  $("#chapterTitle").textContent=chapter.title;
+  $("#chapterSubtitle").textContent=chapter.subtitle;
+  storyLog.innerHTML="";
+  appendStoryBlock("intro",`${chapter.no} / ${chapter.location} / 剧情`,chapter.intro);
+  renderScene(chapter.scene);
+  updateAudioProfile(index);
+  updateTimeline();
+  const selected=preserveSelection?state.selectedChoice:null;
+  if(selected!==null && chapter.choices[selected]){
+    applyChoice(selected,true);
+  }else{
+    state.selectedChoice=null;renderChoices(chapter);
+  }
+  updateMetrics();saveState();
+}
+function renderScene(sceneId){
+  clearTimeout(sceneTimer);
+  artFrame.classList.add("changing");
+  sceneTimer=setTimeout(()=>{
+    artFrame.innerHTML=SCENES[sceneId]?SCENES[sceneId]():SCENES.redCoast();
+    requestAnimationFrame(()=>artFrame.classList.remove("changing"));
+  },260);
+}
+function chooseOption(index){
+  const chapter=CHAPTERS[currentChapter];
+  const choice=chapter.choices[index];if(!choice)return;
+  state.selectedChoice=index;
+  $$(".choice",choicesBox).forEach((button,i)=>{button.classList.toggle("selected",i===index);button.classList.add("disabled")});
+  applyChoice(index,false);saveState();
+}
+function applyChoice(index,restoring){
+  const chapter=CHAPTERS[currentChapter];const choice=chapter.choices[index];if(!choice)return;
+  if(!restoring){
+    Object.entries(choice.effect||{}).forEach(([name,value])=>{state.stats[name]=clamp((state.stats[name]||0)+value)});
+    appendStoryBlock("choice",`决策 / ${choice.title}`,choice.title+"。"+choice.desc+"。");
+    appendStoryBlock("result","后果 / 宇宙回响",choice.result);
+  }else{
+    appendStoryBlock("choice",`决策 / ${choice.title}`,choice.title+"。"+choice.desc+"。");
+    appendStoryBlock("result","后果 / 宇宙回响",choice.result);
+  }
+  showContinue(chapter,choice);updateMetrics();saveState();
+}
+function advanceChapter(nextId){
+  state.selectedChoice=null;
+  if(nextId==="ending"){renderScene("ending");setTimeout(showEnding,420);return}
+  const index=CHAPTERS.findIndex(ch=>ch.id===nextId);
+  if(index>=0){renderChapter(index,{preserveSelection:false});window.scrollTo({top:0,behavior:"smooth"})}
+}
+function jumpToChapter(index){
+  state.selectedChoice=null;renderChapter(index,{preserveSelection:false});window.scrollTo({top:0,behavior:"smooth"});
+}
+function updateMetrics(){
+  ["rational","empathy","survival"].forEach(name=>{
+    const value=state.stats[name]||0;
+    $(`#${name}Value`).textContent=Math.round(value);
+    $(`#${name}Bar`).style.width=value+"%";
+  });
+}
+function showEnding(){
+  const stats=state.stats;
+  const ranked=Object.entries(stats).sort((a,b)=>b[1]-a[1]);
+  const dominant=ranked[0][0];
+  const endings={
+    rational:"你留下的不是一座城，而是一套能够解释宇宙的方法。文明会忘记你的名字，但后来者仍能沿着数据、公式与记录，重新抵达你站过的位置。",
+    empathy:"你留下的不是一份宣言，而是一座仍有人生活其中的小宇宙。理性也许会计算它的存续概率，情感却让人愿意在概率之外，多保存一盏灯。",
+    survival:"你留下的不是永恒的保证，而是一条可以再次出发的路径。文明没有战胜时间，只是学会在每一次毁灭前，把下一步藏进记忆。"
+  };
+  $("#endingTitle").textContent=dominant==="empathy"?"一盏不肯熄灭的灯":dominant==="rational"?"刻在石头上的答案":"飞向新宇宙的火种";
+  $("#endingText").textContent=endings[dominant]+" 旧宇宙的质量被归还，文明记忆随漂流瓶远行；只有那五公斤生态球仍留在黑暗中，像一枚拒绝归零的句号。";
+  $("#endingStats").innerHTML=`<span class="ending-stat">理性 ${Math.round(stats.rational)}</span><span class="ending-stat">共情 ${Math.round(stats.empathy)}</span><span class="ending-stat">生存 ${Math.round(stats.survival)}</span><span class="ending-stat">旅程 ${CHAPTERS.length} / ${CHAPTERS.length}</span>`;
+  endingModal.classList.remove("hidden");document.body.classList.add("modal-open");
+}
+function closeModal(modal){modal.classList.add("hidden");if(!$$(".modal:not(.hidden)").length)document.body.classList.remove("modal-open")}
+function openModal(modal){modal.classList.remove("hidden");document.body.classList.add("modal-open")}
+function resetGame(){
+  state=structuredCloneSafe(DEFAULT_STATE);saveState();currentChapter=0;buildTimeline();renderChapter(0,{preserveSelection:false});
+}
+function startGame(useSaved=true){
+  const hasSave=!!readSavedState();
+  intro.classList.add("hidden");game.classList.remove("hidden");
+  currentChapter=useSaved&&hasSave?state.chapterIndex:0;
+  if(!useSaved||!hasSave)state=structuredCloneSafe(DEFAULT_STATE);
+  buildTimeline();buildArchive();renderChapter(currentChapter,{preserveSelection:useSaved&&hasSave});
+  window.scrollTo(0,0);
+}
+
+/* ==================== 星空背景 ==================== */
+function initStarfield(){
+  const canvas=$("#starfield"),ctx=canvas.getContext("2d");let stars=[],w=0,h=0,dpr=1;
+  function resize(){
+    dpr=Math.min(window.devicePixelRatio||1,2);w=innerWidth;h=innerHeight;canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+    const count=Math.min(150,Math.floor(w*h/9000));stars=Array.from({length:count},(_,i)=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.2+.2,a:Math.random()*.65+.15,v:Math.random()*.018+.003,p:Math.random()*Math.PI*2}));
+  }
+  function draw(time=0){
+    ctx.clearRect(0,0,w,h);
+    stars.forEach(s=>{s.y-=s.v;s.x+=Math.sin(time*.00025+s.p)*.015;if(s.y<0){s.y=h;s.x=Math.random()*w}ctx.beginPath();ctx.fillStyle=`rgba(220,231,229,${s.a})`;ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill()});
+    requestAnimationFrame(draw);
+  }
+  resize();addEventListener("resize",resize,{passive:true});draw();
+}
+
+/* ==================== Web Audio 原创新环境音 ==================== */
+let audioEngine=null;
+function createAudio(){
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+  const ctx=new AC(),master=ctx.createGain(),filter=ctx.createBiquadFilter();
+  master.gain.value=0;filter.type="lowpass";filter.frequency.value=420;filter.Q.value=.8;
+  master.connect(filter);filter.connect(ctx.destination);
+  const oscs=[
+    {type:"sine",freq:43,detune:0,gain:.55},
+    {type:"triangle",freq:64.7,detune:4,gain:.28},
+    {type:"sine",freq:86,detune:-7,gain:.16}
+  ].map(o=>{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type=o.type;osc.frequency.value=o.freq;osc.detune.value=o.detune;gain.gain.value=o.gain;osc.connect(gain);gain.connect(master);osc.start();return{osc,gain}});
+  return{ctx,master,filter,oscs};
+}
+function toggleAudio(){
+  const button=$("#soundBtn");
+  if(!audioEngine){audioEngine=createAudio();if(!audioEngine){button.textContent="×";return}audioEngine.ctx.resume()}
+  const ctx=audioEngine.ctx,now=ctx.currentTime,on=audioEngine.master.gain.value<.01;
+  audioEngine.master.gain.cancelScheduledValues(now);audioEngine.master.gain.setValueAtTime(audioEngine.master.gain.value,now);audioEngine.master.gain.linearRampToValueAtTime(on?.045:0,now+(on?1.2:.45));
+  button.classList.toggle("active",on);button.textContent=on?"♫":"◌";button.setAttribute("aria-label",on?"关闭环境音":"开启环境音");
+}
+function updateAudioProfile(index){
+  if(!audioEngine)return;
+  const profiles=[[43,64.7,86,390],[55,82.4,110,560],[49,73.4,98,480],[36,54,72,330],[58,87,116,640],[44,65.4,87,430],[62,93,124,720],[45,67.5,90,410],[35,52.5,70,300],[58,87,116,650],[41,61.5,82,360],[69,103.5,138,780]];
+  const p=profiles[index]||profiles[0],now=audioEngine.ctx.currentTime;
+  audioEngine.oscs.forEach((o,i)=>{o.osc.frequency.setTargetAtTime(p[i],now,1.2);o.osc.detune.setTargetAtTime(i*3-2,now,1)});
+  audioEngine.filter.frequency.setTargetAtTime(p[3],now,1.5);
+}
+
+/* ==================== 事件绑定 ==================== */
+function initEvents(){
+  $("#startBtn").addEventListener("click",()=>startGame(true));
+  $("#newBtn").addEventListener("click",()=>{state=structuredCloneSafe(DEFAULT_STATE);saveState();startGame(false)});
+  $("#archiveBtn").addEventListener("click",()=>{buildArchive();openModal(archiveModal)});
+  $("#resetBtn").addEventListener("click",()=>{if(confirm("确定清除本次决策记录，从红岸重新开始吗？"))resetGame()});
+  $("#soundBtn").addEventListener("click",toggleAudio);
+  $("#brandHome").addEventListener("click",e=>{e.preventDefault();intro.classList.remove("hidden");game.classList.add("hidden")});
+  $("#endingRestart").addEventListener("click",()=>{closeModal(endingModal);resetGame();intro.classList.add("hidden");game.classList.remove("hidden")});
+  $("#endingArchive").addEventListener("click",()=>{closeModal(endingModal);buildArchive();openModal(archiveModal)});
+  $$("[data-close]").forEach(button=>button.addEventListener("click",()=>closeModal(document.getElementById(button.dataset.close))));
+  $$(".modal").forEach(modal=>modal.addEventListener("click",event=>{if(event.target===modal)closeModal(modal)}));
+  document.addEventListener("keydown",event=>{
+    if(event.key==="Escape"){const open=$$(".modal:not(.hidden)");if(open.length)closeModal(open[0])}
+    if($(".modal:not(.hidden)"))return;
+    if(!game.classList.contains("hidden")&&["1","2","3"].includes(event.key)){
+      const index=Number(event.key)-1,button=$(`.choice[data-index="${index}"]`,choicesBox);if(button&&!button.classList.contains("disabled"))button.click();
+    }
+  });
+  document.addEventListener("visibilitychange",()=>{if(document.hidden&&audioEngine)audioEngine.master.gain.setTargetAtTime(0,audioEngine.ctx.currentTime,.2)});
+}
+function init(){
+  initStarfield();initEvents();buildTimeline();buildArchive();updateMetrics();
+  if(readSavedState())$("#startBtn").textContent="继续宇宙";
+}
+init();
+</script>
+</body>
+</html>
